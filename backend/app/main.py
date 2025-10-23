@@ -1,5 +1,6 @@
 import database
 import logging
+from backend.app.models.user import User
 
 # Логирование
 logging.basicConfig(
@@ -13,4 +14,4 @@ if __name__ == '__main__':
         database.init_db()
     except Exception as e:
         logger.error(f"Ошибка подключения к базе данных: {str(e)}", exc_info=True)
-
+    User.create_table(safe=True)
