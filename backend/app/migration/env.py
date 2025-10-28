@@ -18,6 +18,7 @@ sys.path.insert(0, str(project_root))
 # Импортируем Base и все модели
 from backend.app.database import Base, DATABASE_URL
 from backend.app.models.user import User
+from backend.app.models.user_role import User_role
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
 config = context.config
