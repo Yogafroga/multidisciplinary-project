@@ -1,17 +1,27 @@
-import database
-import logging
-from backend.app.models.user import User
+import dotenv
+from sqlalchemy.ext.asyncio import AsyncSession
 
-# Логирование
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-)
-logger = logging.getLogger(__name__)
+dotenv.load_dotenv("C:/Users/lolke/PycharmProjects/multidisciplinary-project/backend/.env")
+from typing import Annotated
+from starlette import status
+from backend.app.api.auth import db_dependency
+from fastapi import FastAPI, HTTPException, Depends
+from backend.app.api import auth
+from backend.app.services.auth import get_current_user
 
-if __name__ == '__main__':
-    try:
-        database.init_db()
-    except Exception as e:
-        logger.error(f"Ошибка подключения к базе данных: {str(e)}", exc_info=True)
-    User.create_table(safe=True)
+user_dependency = Annotated[dict, Depends(get_current_user)]
+
+app = FastAPI(title="CattleWeighAI API MVP", version="0.0.1")
+app.include_router(auth.router)
+
+
+@app.get("/", status_code=status.HTTP_200_OK)
+async def user(user: user_dependency, db: db_dependency):
+    if user is None:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED)
+    return {"user": user}
+
+
+@app.get("/hello")
+def hello():
+    return {"message": "hello!"}
