@@ -19,9 +19,10 @@ sys.path.insert(0, str(project_root))
 from backend.app.database import Base, DATABASE_URL
 from backend.app.models.user import User
 from backend.app.models.user_role import User_role
-from backend.app.models.animal_type import Animal_type
 from backend.app.models.animal import Animal
 from backend.app.models.weighing import Weighing
+from backend.app.models.report import Report
+from backend.app.models.user_report import User_report
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
 config = context.config

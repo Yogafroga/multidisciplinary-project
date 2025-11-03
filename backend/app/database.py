@@ -7,8 +7,8 @@ from sqlalchemy.orm import DeclarativeBase, declared_attr, Mapped, mapped_column
 from typing import Annotated, AsyncGenerator
 from dotenv import load_dotenv
 
-# Загружаем .env файл
-env_path = Path(__file__).parent / ".env"
+# Загружаем .env файл из папки backend
+env_path = Path(__file__).parent.parent / ".env"
 load_dotenv(env_path)
 
 DB_NAME = os.getenv('DB_NAME')
