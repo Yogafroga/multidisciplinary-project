@@ -1,9 +1,15 @@
 from datetime import datetime
 import os
+from pathlib import Path
 from sqlalchemy import func
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncAttrs, AsyncSession
 from sqlalchemy.orm import DeclarativeBase, declared_attr, Mapped, mapped_column
 from typing import Annotated, AsyncGenerator
+from dotenv import load_dotenv
+
+# Загружаем .env файл
+env_path = Path(__file__).parent / ".env"
+load_dotenv(env_path)
 
 DB_NAME = os.getenv('DB_NAME')
 DB_HOST = os.getenv('DB_HOST')

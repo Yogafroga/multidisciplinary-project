@@ -1,7 +1,4 @@
-import dotenv
 from sqlalchemy.ext.asyncio import AsyncSession
-
-dotenv.load_dotenv("C:/Users/lolke/PycharmProjects/multidisciplinary-project/backend/.env")
 from typing import Annotated
 from starlette import status
 from backend.app.api.auth import db_dependency
