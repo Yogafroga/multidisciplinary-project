@@ -6,6 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.app.api.auth import db_dependency
 from backend.app.api import auth
+from backend.app.api import uploadImage
 from backend.app.services.auth import get_current_user
 
 user_dependency = Annotated[dict, Depends(get_current_user)]
@@ -26,6 +27,7 @@ app.add_middleware(
 # CORS
 
 app.include_router(auth.router)
+app.include_router(uploadImage.router)
 
 
 @app.get("/", status_code=status.HTTP_200_OK)

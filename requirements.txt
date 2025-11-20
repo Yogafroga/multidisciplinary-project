@@ -10,3 +10,6 @@ uvicorn~=0.30.0
 asyncpg>=0.30.0
 python-jose~=3.3.0
 python-multipart==0.0.20
+Pillow>=9.0.0
+aiofiles
+pydantic-settings>=2.0.0
