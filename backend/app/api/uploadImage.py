@@ -4,45 +4,18 @@ from fastapi import APIRouter, UploadFile, File, status, HTTPException, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.app.services.image_service import image_service
+from backend.app.services.auth import get_current_user
 from backend.app.utils.validators import image_validator
 from backend.app.database import get_db
 
 router = APIRouter(tags=['Upload'])
 
-@router.post("/upload_image", status_code=status.HTTP_201_CREATED)
-async def upload_single_image(
-    file: UploadFile = File(...),
-    session: AsyncSession = Depends(get_db)
-):
-    """
-    Загрузка одного изображения с валидацией.
-    Сохраняет файл на диск и информацию о нём в БД.
-    """
-    # 1. Валидация
-    validated_file = await image_validator.validate(file)
 
-    # 2. Генерация папки
-    subfolder = str(uuid.uuid4())
-
-    # 3. Сохранение (на диск + в БД)
-    try:
-        image_data = await image_service.upload_image(validated_file, subfolder, session)
-        return {
-            "message": "File uploaded successfully",
-            "weighing_id": image_data.id,
-            "image_url": image_data.image_url
-        }
-    except Exception as e:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Не удалось сохранить файл: {str(e)}"
-        )
-
-
-@router.post("/upload_images", status_code=status.HTTP_200_OK)
+@router.post("/upload_images", status_code=status.HTTP_201_CREATED)
 async def upload_multiple_images(
     files: List[UploadFile] = File(...),
-    session: AsyncSession = Depends(get_db)
+    session: AsyncSession = Depends(get_db),
+    current_user: dict = Depends(get_current_user)
 ):
     """
     Массовая загрузка изображений.
@@ -51,6 +24,7 @@ async def upload_multiple_images(
     """
     results = []
     batch_id = str(uuid.uuid4())  # Все файлы из одного запроса кладем в одну папку
+    user_id = current_user['user_id']  # Получаем ID пользователя из токена
 
     for file in files:
         file_result = {"filename": file.filename, "status": "pending"}
@@ -60,12 +34,12 @@ async def upload_multiple_images(
             validated_file = await image_validator.validate(file)
 
             # Сохранение (на диск + в БД)
-            image_data = await image_service.upload_image(validated_file, batch_id, session)
+            image_data = await image_service.upload_image(validated_file, batch_id, user_id, session)
 
             file_result.update({
                 "status": "success",
-                "weighing_id": image_data.id,
-                "image_url": image_data.image_url
+                "image_id": image_data.id,
+                "image_url": image_data.url_path
             })
 
         except HTTPException as e:
