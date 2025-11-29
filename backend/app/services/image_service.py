@@ -33,7 +33,7 @@ class ImageService:
         # 1. Преобразуем subfolder_name (UUID строка) в UUID объект
         batch_uuid = uuid.UUID(subfolder_name)
 
-        # 2. Создаем новый батч (UUID уникален, проверка не нужна)
+        # 2. Создаем новый батч
         batch = await batch_image_repository.create(session, user_id, batch_uuid)
 
         # 3. Сохраняем файл на диск

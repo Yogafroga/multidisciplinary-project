@@ -17,7 +17,7 @@ SECRET_KEY = os.getenv('SECRET_KEY')
 ALGORITHM = 'HS256'
 
 bcrypt_context = CryptContext(schemes=['bcrypt'], deprecated='auto')
-oauth2_bearer = OAuth2PasswordBearer(tokenUrl='api/auth/login')
+oauth2_bearer = OAuth2PasswordBearer(tokenUrl='api/auth/token')
 
 db_dependency = Annotated[AsyncSession, Depends(get_db)]
 
