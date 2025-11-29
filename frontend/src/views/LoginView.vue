@@ -6,18 +6,23 @@
 
       <form @submit.prevent="handleLogin">
         <div class="field">
-          <label>Логин</label>
-          <input v-model="form.username" type="text" required />
+          <Label for-id="username" required>Логин</Label>
+          <Input id="username" v-model="form.username" type="email" :error="errors.usernameError"  placeholder="Введите логин" required />
         </div>
 
         <div class="field">
-          <label>Пароль</label>
-          <input v-model="form.password" type="password" required />
+          <Label for-id="password" required>Пароль</Label>
+          <Input id="password" v-model="form.password" type="password" :error="errors.passwordError" placeholder="Введите пароль" required />
         </div>
-
-        <button type="submit" :disabled="loading">
-          {{ loading ? 'Вход...' : 'Войти' }}
-        </button>
+        <Button
+          tupe="button"
+          variant="primary"
+          :loading="loading"
+          :disabled="loading"
+          @click="handleLogin"
+          >
+          Войти
+        </Button>
       </form>
 
       <p v-if="error" class="error">{{ error }}</p>
@@ -34,6 +39,10 @@
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { useAuthStore} from "../stores/auth.js";
+import Button from '../components/button.vue';
+import Input from '../components/input.vue';
+import Label from '../components/lable.vue';
+
 
 const router = useRouter();
 const auth = useAuthStore();
@@ -43,10 +52,35 @@ const form = ref({
   password: '',
 });
 
+const errors = ref({
+  usernameError: '',
+  passwordError: ''
+});
+
 const loading = ref(false);
 const error = ref('');
 
 const handleLogin = async () => {
+
+  errors.value.usernameError = '';
+  errors.value.passwordError = '';
+  error.value = '';
+
+  let hasError = false;
+  if(!form.value.username) {
+    errors.value.usernameError = 'Введите логин';
+    hasError = true;
+  }
+
+  if(!form.value.password) {
+    errors.value.passwordError = 'Введите пароль';
+    hasError = true;
+  }
+
+  if (hasError) {
+    return;
+  }
+
   loading.value = true;
   error.value = '';
 
