@@ -1,0 +1,13 @@
+<script setup>
+
+</script>
+
+<template>
+  <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <rect x="0.5" y="0.5" width="11" height="11" rx="1.5" stroke="#271F12"/>
+  </svg>
+</template>
+
+<style scoped>
+
+</style>

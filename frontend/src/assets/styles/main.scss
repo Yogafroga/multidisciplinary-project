@@ -1,15 +1,13 @@
 // main.scss
 
 // 1. Сброс и базовые стили
-@import './base/reset';
-@import './base/fonts';
+@use './base/reset';
+@use './base/fonts';
+@use './base/typography';
 
-// 2. Переменные (должны быть до компонентов!)
-@import 'variables';
+// 3. Компоненты UI (можно вынести в отдельный файл, но пока так)
+@use './components/input';
+@use './components/button';
+@use './components/label';
 
-// 3. Базовая типографика и поведение
-@import './base/typography';
-
-// 4. Компоненты UI (можно вынести в отдельный файл, но пока так)
-
-// 5. Макеты (layout)
+// 4. Макеты (layout)

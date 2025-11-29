@@ -1,0 +1,14 @@
+@use '../variables' as *;
+@use '../base/typography' as *;
+
+.app-lable {
+  @extend .text-h4;
+  display: block;
+  margin-bottom: $spacing-xs;
+  color: $text-color-primary;
+}
+
+.required {
+  color: $color-error;
+  margin-left: 4px;
+}

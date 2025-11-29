@@ -1,0 +1,54 @@
+@use '../variables' as *;
+@use '../base/typography' as *;
+
+.app-input {
+  display: flex;
+  flex-direction: column;
+  width: $input-width;
+}
+
+.input-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+.app-input input {
+  width: 100%;
+  height: $input-height;
+  padding: $padding-md $padding-sm;
+  border: 1px solid $border-color;
+  border-radius: $border-radius-md;
+  background: transparent;
+
+  // Используем класс из типографики
+  @extend .text-h4;
+
+  outline: none;
+  transition: border-color 0.2s ease;
+
+  &::placeholder {
+    color: $text-color-primary;
+    opacity: 0.5;
+  }
+}
+
+.app-input.error input {
+  border-color: $color-error;
+}
+
+.eye {
+  position: absolute;
+  top: 50%;
+  right: 10px;
+  transform: translateY(-50%);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+}
+
+.error-message {
+  @extend .text-h6;
+  color: $color-error;
+  margin-top: $spacing-sm;
+  text-align: left;
+}

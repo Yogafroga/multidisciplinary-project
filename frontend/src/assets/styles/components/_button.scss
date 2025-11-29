@@ -1,0 +1,45 @@
+@use '../variables' as *;
+@use '../base/typography' as *;
+@use "sass:color";
+
+.app-button {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: $button-width;
+  height: $button-height;
+  padding: $padding-md $padding-sm;
+  border: 1px solid $border-color;
+  border-radius: $border-radius-md;
+
+  @extend .text-h4;
+
+  transition: background-color 0.25s ease;
+  user-select: none;
+  cursor: pointer;
+
+  &:disabled,
+  &.loading {
+    cursor: not-allowed;
+    opacity: 0.8;
+  }
+}
+
+/* Варианты кнопок */
+.app-button.primary {
+  background-color: $color-headline;
+  color: white;
+}
+
+.app-button.primary:hover:not(:disabled):not(.loading) {
+  background-color: color.scale($color-headline, $alpha: -25%);
+}
+
+.app-button.primary:active:not(:disabled):not(.loading) {
+  background-color: $color-background-2;
+}
+
+.app-button.disabled {
+  background-color: $color-background-2;
+  color: white;
+}

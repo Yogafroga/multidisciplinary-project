@@ -39,9 +39,9 @@
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { useAuthStore} from "../stores/auth.js";
-import Button from '../components/button.vue';
-import Input from '../components/input.vue';
-import Label from '../components/lable.vue';
+import Button from '../components/ui/button.vue';
+import Input from '../components/ui/input.vue';
+import Label from '../components/ui/label.vue';
 
 
 const router = useRouter();
