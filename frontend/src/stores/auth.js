@@ -1,4 +1,3 @@
-// frontend/src/stores/auth.js
 import { defineStore } from 'pinia';
 import api from "../services/api.js";
 import { ref } from 'vue';
@@ -21,8 +20,6 @@ export const useAuthStore = defineStore('auth', () => {
             token.value = response.data.access_token;
             localStorage.setItem('access_token', token.value);
 
-            // Попробуем получить данные пользователя (если есть эндпоинт)
-            // await fetchUser();
             return { success: true };
         } catch (error) {
             return { success: false, error: error.response?.data || error.message };
