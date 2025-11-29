@@ -1,0 +1,78 @@
+$font-family-primary: 'Inter', sans-serif;
+$font-family-secondary: 'Helvetica', sans-serif;
+
+// Размеры и высота строк
+$font-size-h1: 32px;
+$font-size-h2: 24px;
+$font-size-h3: 20px;
+$font-size-h4: 16px;
+$font-size-h5: 14px;
+$font-size-h6: 12px;
+$font-size-uppercase: 16px;
+
+$line-height-normal: 1.5;
+
+// Цвета текста
+$text-color-primary: #271f12;
+
+// Вес шрифта
+$font-weight-regular: 400;
+$font-weight-bold: 600;
+
+// Стили текста — используй как классы
+.text-h1 {
+  font-family: $font-family-secondary;
+  font-size: $font-size-h1;
+  font-weight: $font-weight-bold;
+  line-height: $line-height-normal;
+  color: $text-color-primary;
+}
+
+.text-h2 {
+  font-family: $font-family-primary;
+  font-size: $font-size-h2;
+  font-weight: $font-weight-bold;
+  line-height: $line-height-normal;
+  color: $text-color-primary;
+}
+
+.text-h3 {
+  font-family: $font-family-primary;
+  font-size: $font-size-h3;
+  font-weight: $font-weight-bold;
+  line-height: $line-height-normal;
+  color: $text-color-primary;
+}
+
+.text-h4 {
+  font-family: $font-family-primary;
+  font-size: $font-size-h4;
+  font-weight: $font-weight-regular;
+  line-height: $line-height-normal;
+  color: $text-color-primary;
+}
+
+.text-h5 {
+  font-family: $font-family-primary;
+  font-size: $font-size-h5;
+  font-weight: $font-weight-regular;
+  line-height: $line-height-normal;
+  color: $text-color-primary;
+}
+
+.text-h6 {
+  font-family: $font-family-primary;
+  font-size: $font-size-h6;
+  font-weight: $font-weight-regular;
+  line-height: $line-height-normal;
+  color: $text-color-primary;
+}
+
+.text-uppercase {
+  font-family: $font-family-secondary;
+  font-size: $font-size-uppercase;
+  font-weight: $font-weight-regular;
+  line-height: $line-height-normal;
+  color: $text-color-primary;
+  text-transform: uppercase;
+}
