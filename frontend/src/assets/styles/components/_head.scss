@@ -1,0 +1,46 @@
+@use '../variables' as *;
+@use '../base/typography' as *;
+@use "sass:color";
+
+.header-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: calc($spacing-xs * 4.5) calc($spacing-sm * 5);
+    background-color: $color-background-1;
+}
+
+.center-section {
+    display: flex;
+    column-gap: calc($spacing-sm * 4);
+}
+
+.download-block,
+.history-block,
+.right-section {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    column-gap: $spacing-sm;
+}
+
+.download-block .text,
+.history-block .text {
+    text-decoration: none;
+    transition: text-decoration 0.3s;
+}
+
+.download-block:hover .text,
+.history-block:hover .text {
+    text-decoration: underline;
+}
+
+.download-block:active .text,
+.history-block:active .text {
+    text-decoration: none;
+}
+
+.text,
+.email {
+    color: $color-background-2;
+}

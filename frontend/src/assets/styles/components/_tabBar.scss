@@ -1,0 +1,38 @@
+@use '../variables' as *;
+@use '../base/typography' as *;
+
+.tab-bar {
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    column-gap: 11px;
+
+    width: fit-content;
+    padding: 9px calc($spacing-sm * 3);
+    background-color: $color-background-1;
+    border-radius: 24px;
+
+    font-family: $font-family-primary;
+    font-size: $font-size-h2;
+    font-weight: $font-weight-bold;
+    color: $color-background-2;
+}
+
+.tab-bar.small {
+    font-size: $font-size-h4;
+}
+
+.tab {
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    transition: background-color 0.3s;
+}
+
+.tab.selected {
+    padding: calc($spacing-sm) calc($spacing-sm * 3);
+    border-radius: 16px;
+
+    background-color: $color-background-2;
+    color: $text-color-primary;
+}
