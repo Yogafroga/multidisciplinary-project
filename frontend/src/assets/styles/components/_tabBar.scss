@@ -5,12 +5,11 @@
     display: inline-flex;
     justify-content: center;
     align-items: center;
-    column-gap: 11px;
 
     width: fit-content;
-    padding: 9px calc($spacing-sm * 3);
+    padding: $spacing-sm calc($spacing-sm * 3);
     background-color: $color-background-1;
-    border-radius: 24px;
+    border-radius: calc($border-radius-md * 2);
 
     font-family: $font-family-primary;
     font-size: $font-size-h2;
@@ -20,19 +19,45 @@
 
 .tab-bar.small {
     font-size: $font-size-h4;
+    font-weight: $font-weight-medium;
 }
 
 .tab {
     display: inline-flex;
     justify-content: center;
     align-items: center;
+
+    padding: $spacing-sm calc($spacing-sm * 3);
     transition: background-color 0.3s;
+    cursor: pointer;
 }
 
 .tab.selected {
-    padding: calc($spacing-sm) calc($spacing-sm * 3);
-    border-radius: 16px;
+    padding: calc($spacing-sm) calc($spacing-sm * 2);
+    border-radius: calc($border-radius-md * 1.3);
 
     background-color: $color-background-2;
     color: $text-color-primary;
+}
+
+.tab-bar.export {
+
+    .tab {
+        column-gap: 8px;
+        padding: $spacing-sm calc($spacing-sm * 2);
+        font-size: $font-size-h4
+    }
+}
+
+.tab-bar.export-small {
+    padding: calc($spacing-xs * 1.5) $spacing-sm;
+    border-radius: calc($border-radius-md * 2);
+
+    .tab {
+        padding: calc($spacing-xs) calc($spacing-sm * 1.5);
+        font-size: $font-size-h6;
+        font-weight: $font-weight-regular;
+
+        column-gap: 6px;
+    }
 }

@@ -6,6 +6,14 @@
   display: flex;
   justify-content: center;
   align-items: center;
+
+  transition: background-color 0.25s ease;
+  user-select: none;
+  cursor: pointer;
+}
+
+/* Варианты кнопок */
+.app-button.primary {
   width: $button-width;
   height: $button-height;
   padding: $padding-md $padding-sm;
@@ -14,21 +22,14 @@
 
   @extend .text-h4;
 
-  transition: background-color 0.25s ease;
-  user-select: none;
-  cursor: pointer;
+  background-color: $color-headline;
+  color: white;
 
   &:disabled,
   &.loading {
     cursor: not-allowed;
     opacity: 0.8;
   }
-}
-
-/* Варианты кнопок */
-.app-button.primary {
-  background-color: $color-headline;
-  color: white;
 }
 
 .app-button.primary:hover:not(:disabled):not(.loading) {
@@ -42,4 +43,26 @@
 .app-button.disabled {
   background-color: $color-background-2;
   color: white;
+}
+
+/* Кнопка загрузки */
+.app-button.upload {
+  column-gap: 8px;
+  width: fit-content;
+  padding: calc($spacing-sm * 1.25);  
+  border-radius: calc($border-radius-md / 1.5);
+
+  background-color: $color-background-1;
+
+  @extend .text-h3;
+  color: $color-background-2;
+}
+
+.app-button.upload:hover {
+  background-color: color.scale($color-background-1, $alpha: -25%);
+}
+
+.app-button.upload:active {
+  background-color: $color-background-1;
+  color: $text-color-primary;
 }

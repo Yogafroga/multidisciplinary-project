@@ -1,0 +1,45 @@
+@use '../variables' as *;
+@use '../base/typography' as *;
+@use "sass:color";
+
+.file-item {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    column-gap: $spacing-sm;
+
+    width: fit-content;
+    height: auto;
+    padding: calc($spacing-xs * 3) calc($spacing-xs * 3) calc($spacing-xs * 3) calc($spacing-xs * 4);
+    border-radius: 16px;
+    
+    background-color: $color-background-2;
+}
+
+.file-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.file-info-botton {
+    display: flex;
+    justify-content: space-between;
+    column-gap: $spacing-md;
+}
+
+.btn {
+    margin-left: 95px;
+    ;
+}
+
+.delete-btn {
+    transition: transform 0.25s ease;
+
+    &:hover {
+        transform: scale(1.1);
+    }
+
+    &:active {
+        transform: scale(0.95);
+    }
+}

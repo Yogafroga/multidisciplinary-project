@@ -1,19 +1,24 @@
 <template>
-  <button
-      class="app-button"
-      :class="[variant, { loading, disabled }]"
-      :disabled="disabled || loading"
-      @click="handleClick"
-  >
-        <span v-if="!loading">
-            <slot />
-        </span>
-    <Loading v-else />
+  <button class="app-button" :class="[variant, { loading, disabled }]" :disabled="disabled || loading"
+    @click="handleClick">
+    <Loading v-if="loading" />
+
+    <template v-else>
+      <template v-if="variant === 'primary'">
+        <slot />
+      </template>
+
+      <template v-else-if="variant === 'upload'">
+        <UploadIcon class="btn-icon" />
+        <span>Загрузить</span>
+      </template>
+    </template>
   </button>
 </template>
 
 <script setup>
 import Loading from '../../assets/icons/main/Loading.vue';
+import UploadIcon from '../../assets/icons/main/Download.vue';
 
 const props = defineProps({
   loading: { type: Boolean, default: false },
