@@ -1,18 +1,18 @@
 <template>
   <div class="view">
-    <h1>История взвешиваний</h1>
+    <h1>🐄 История взвешиваний</h1>
 
-    <button @click="loadHistory">Загрузить историю</button>
-    <div v-if="loading">Загрузка...</div>
-    <ul v-else-if="history.length">
-      <li v-for="item in history" :key="item.id">
+    <button @click="cows.fetchHistory()">Загрузить историю</button>
+    <div v-if="cows.historyLoading">Загрузка...</div>
+    <ul v-else-if="cows.history.data.length">
+      <li v-for="item in cows.history.data" :key="item.id">
         <strong>Корова {{ item.animal_id }}</strong>
         — {{ item.weight }} кг,
         {{ new Date(item.created_at).toLocaleString() }}
         <button @click="deleteItem(item.id)">Удалить</button>
       </li>
     </ul>
-    <div v-else-if="!loading" class="empty">Нет данных</div>
+    <div v-else class="empty">Нет данных</div>
 
     <hr />
 
@@ -25,64 +25,34 @@
 
 <script setup>
 import { ref } from 'vue';
+import { useCowsStore } from '../stores/cows.js';
 
-const history = ref([]);
-const loading = ref(false);
+const cows = useCowsStore();
 const animalId = ref('001');
 const selectedFile = ref(null);
 
-// Мок загрузки истории
-const loadHistory = async () => {
-  loading.value = true;
-  // Имитация задержки
-  await new Promise(resolve => setTimeout(resolve, 800));
-  history.value = [
-    {
-      id: 1,
-      animal_id: '001',
-      weight: 450.5,
-      confidence: 0.92,
-      created_at: '2024-01-15T10:30:00Z',
-    },
-    {
-      id: 2,
-      animal_id: '002',
-      weight: 460.1,
-      confidence: 0.89,
-      created_at: '2024-01-16T11:00:00Z',
-    },
-  ];
-  loading.value = false;
-};
-
-// Удаление записи
-const deleteItem = (id) => {
-  if (confirm('Удалить запись?')) {
-    history.value = history.value.filter(item => item.id !== id);
-  }
-};
-
-// Выбор файла
 const onFileChange = (e) => {
   selectedFile.value = e.target.files[0];
 };
 
-// Мок загрузки изображения
-const uploadImage = () => {
+const deleteItem = async (id) => {
+  if (confirm('Удалить запись?')) {
+    await cows.deleteRecord(id);
+  }
+};
+
+const uploadImage = async () => {
   if (!selectedFile.value || !animalId.value) {
-    alert('Выберите файл и укажите ID коровы');
+    alert('Выберите файл и укажите ID');
     return;
   }
-  const newEntry = {
-    id: Date.now(),
-    animal_id: animalId.value,
-    weight: (450 + Math.random() * 30).toFixed(1),
-    created_at: new Date().toISOString(),
-  };
-  history.value.unshift(newEntry);
-  alert('Изображение загружено (мок)');
+  const result = await cows.uploadImage(selectedFile.value, animalId.value);
+  if (result.success) {
+    alert('Изображение загружено!');
+  } else {
+    alert('Ошибка: ' + result.error);
+  }
   selectedFile.value = null;
-  animalId.value = '001';
 };
 </script>
 
@@ -93,10 +63,6 @@ const uploadImage = () => {
   padding: 20px;
 }
 
-h1, h2 {
-  color: #271f12;
-}
-
 button {
   padding: 8px 16px;
   margin: 5px;
@@ -105,10 +71,6 @@ button {
   border: none;
   border-radius: 8px;
   cursor: pointer;
-}
-
-button:hover {
-  background: #3a0ca3;
 }
 
 input {
@@ -132,15 +94,5 @@ li {
   display: flex;
   justify-content: space-between;
   align-items: center;
-}
-
-.empty {
-  color: #999;
-  font-style: italic;
-}
-
-hr {
-  margin: 30px 0;
-  border: 1px solid #eee;
 }
 </style>
