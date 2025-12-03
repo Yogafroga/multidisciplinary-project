@@ -7,32 +7,32 @@ from backend.app.models.image import Image
 class ImageRepository:
     """Репозиторий для работы с изображениями в БД"""
 
-    @staticmethod
-    async def create(session: AsyncSession, file_data: dict, batch_db_id: int) -> Image:
-        """
-        Создает новую запись изображения в БД.
+@staticmethod
+async def create(session: AsyncSession, file_data: dict, batch_db_id: int) -> Image:
+    """
+    Создает новую запись изображения в БД.
 
-        Args:
-            session: Сессия БД
-            file_data: Словарь с данными файла (из save_file)
-                - file_data["subfolder"] содержит batch_uid (UUID строку)
-            batch_db_id: ID записи батча в БД (integer FK к image_batches.id)
+    Args:
+        session: Сессия БД
+        file_data: Словарь с данными файла (из save_file)
+            - file_data["url_path"] должен содержать полный URL
+        batch_db_id: ID записи батча в БД (integer FK к image_batches.id)
 
-        Returns:
-            Image: Созданный объект изображения
-        """
-        image = Image(
-            original_name=file_data.get("original_filename"),
-            url_path=file_data.get("file_path"),
-            batch_id=batch_db_id,
-            status="UPLOADED"
-        )
+    Returns:
+        Image: Созданный объект изображения
+    """
+    image = Image(
+        original_name=file_data.get("original_filename"),
+        url_path=file_data.get("url_path"),  # Используем url_path вместо file_path
+        batch_id=batch_db_id,
+        status="UPLOADED"
+    )
 
-        session.add(image)
-        await session.commit()
-        await session.refresh(image)
+    session.add(image)
+    await session.commit()
+    await session.refresh(image)
 
-        return image
+    return image
 
     # @staticmethod
     # async def get_by_id(session: AsyncSession, image_id: int) -> Optional[Image]:

@@ -13,7 +13,7 @@ router = APIRouter(tags=['Upload'])
 
 @router.post("/upload_images", status_code=status.HTTP_201_CREATED)
 async def upload_multiple_images(
-    files: List[UploadFile] = File(...),
+    file: UploadFile = File(...),
     session: AsyncSession = Depends(get_db),
     current_user: dict = Depends(get_current_user)
 ):
@@ -26,35 +26,35 @@ async def upload_multiple_images(
     batch_id = str(uuid.uuid4())  # Все файлы из одного запроса кладем в одну папку
     user_id = current_user['user_id']  # Получаем ID пользователя из токена
 
-    for file in files:
-        file_result = {"filename": file.filename, "status": "pending"}
 
-        try:
-            # Валидация
-            validated_file = await image_validator.validate(file)
+    file_result = {"filename": file.filename, "status": "pending"}
 
-            # Сохранение (на диск + в БД)
-            image_data = await image_service.upload_image(validated_file, batch_id, user_id, session)
+    try:
+        # Валидация
+         validated_file = await image_validator.validate(file)
 
-            file_result.update({
-                "status": "success",
-                "image_id": image_data.id,
-                "image_url": image_data.url_path
-            })
+         # Сохранение (на диск + в БД)
+         image_data = await image_service.upload_image(validated_file, batch_id, user_id, session)
 
-        except HTTPException as e:
-            # Ошибки валидации (400, 413)
-            file_result.update({
-                "status": "failed",
-                "error": e.detail
-            })
-        except Exception as e:
-            # Непредвиденные ошибки
-            file_result.update({
-                "status": "error",
-                "error": f"Internal processing error: {str(e)}"
-            })
+         file_result.update({
+            "status": "success",
+            "image_id": image_data.id,
+            "image_url": image_data.url_path
+        })
 
-        results.append(file_result)
+    except HTTPException as e:
+        # Ошибки валидации (400, 413)
+        file_result.update({
+            "status": "failed",
+            "error": e.detail
+        })
+    except Exception as e:
+        # Непредвиденные ошибки
+        file_result.update({
+            "status": "error",
+            "error": f"Internal processing error: {str(e)}"
+        })
+
+    results.append(file_result)
 
     return {"batch_id": batch_id, "files": results}
