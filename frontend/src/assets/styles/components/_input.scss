@@ -4,39 +4,86 @@
 .app-input {
   display: flex;
   flex-direction: column;
-  width: $input-width;
-}
+  width: fit-content;
 
-.input-wrapper {
-  position: relative;
-  width: 100%;
-}
+  .input-wrapper {
+    position: relative;
+    width: 100%;
+  }
 
-.app-input input {
-  width: 100%;
-  height: $input-height;
-  padding: $padding-md $padding-sm;
-  border: 1px solid $border-color;
-  border-radius: $border-radius-md;
-  background: transparent;
+  input {
+    border: 1px solid $border-color;
+    border-radius: $border-radius-md;
+    background-color: transparent;
 
-  // Используем класс из типографики
-  @extend .text-h4;
+  }
 
-  outline: none;
-  transition: border-color 0.2s ease;
+  // --- Обычные инпуты ---
+  input.text-input {
+    width: $input-width;
+    height: $input-height;
+    padding: $padding-md $padding-sm;
 
-  &::placeholder {
-    color: $text-color-primary;
-    opacity: 0.5;
+    outline: none;
+    transition: border-color 0.2s ease;
+
+    &::placeholder {
+      color: $text-color-primary;
+      opacity: 0.5;
+    }
+  }
+
+  .app-input.error input.text-input {
+    border-color: $color-error;
+  }
+
+  .error-message {
+    @extend .text-h6;
+    color: $color-error;
+    margin-top: $spacing-sm;
+    text-align: left;
+  }
+
+  // --- Диапазон дат ---
+  input.daterange-input {
+    width: 253px;
+    height: 37px;
+    padding: 15px;
+    padding-left: 40px;
+
+    border: none;
+    color: #271F12
+  }
+
+  &.calendar-green {
+
+    input.daterange-input,
+    input.daterange-input::placeholder {
+      color: $color-background-2;
+      background-color: $color-background-1;
+    }
+
+    .calendar-icon svg path {
+      color: $color-background-2;
+    }
+
+    .date-picker-popup {
+      background-color: $color-background-1;
+      color: $color-background-2;
+    }
+    
+    :deep(.vc-title),
+    :deep(.vc-weekday),
+    :deep(.vc-arrow svg) {
+      color: $color-background-2 !important;
+    }
   }
 }
 
-.app-input.error input {
-  border-color: $color-error;
-}
 
-.eye {
+
+.eye,
+.calendar-icon {
   position: absolute;
   top: 50%;
   right: 10px;
@@ -44,11 +91,4 @@
   cursor: pointer;
   display: flex;
   align-items: center;
-}
-
-.error-message {
-  @extend .text-h6;
-  color: $color-error;
-  margin-top: $spacing-sm;
-  text-align: left;
 }
