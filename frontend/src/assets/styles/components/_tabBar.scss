@@ -22,33 +22,37 @@
     font-weight: $font-weight-medium;
 }
 
+// === Все табы — всегда скругленные ===
 .tab {
     display: inline-flex;
     justify-content: center;
     align-items: center;
 
+    // ✅ Единое скругление для всех табов
+    border-radius: calc($border-radius-md * 1.3);
+    background-clip: padding-box;
+
     padding: $spacing-sm calc($spacing-sm * 3);
-    transition: background-color 0.3s;
+    transition: all 0.3s ease;
     cursor: pointer;
 }
 
+// Активный — отличается только цветом
 .tab.selected {
-    padding: calc($spacing-sm) calc($spacing-sm * 2);
-    border-radius: calc($border-radius-md * 1.3);
-
     background-color: $color-background-2;
     color: $text-color-primary;
 }
 
+// Экспорт: крупные табы
 .tab-bar.export {
-
     .tab {
         column-gap: 8px;
         padding: $spacing-sm calc($spacing-sm * 2);
-        font-size: $font-size-h4
+        font-size: $font-size-h4;
     }
 }
 
+// Экспорт: мелкие табы
 .tab-bar.export-small {
     padding: calc($spacing-xs * 1.5) $spacing-sm;
     border-radius: calc($border-radius-md * 2);
@@ -57,7 +61,6 @@
         padding: calc($spacing-xs) calc($spacing-sm * 1.5);
         font-size: $font-size-h6;
         font-weight: $font-weight-regular;
-
         column-gap: 6px;
     }
 }
