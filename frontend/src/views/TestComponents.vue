@@ -62,6 +62,29 @@
         <FileItem :file="{ name: 'data.raw', loaded: 1_000_000, total: 5_000_000 }" />
       </div>
     </section>
+
+    <section>
+      <h2 class="text-h2">7. DragDropUpload — Загрузка файлов</h2>
+      <DragAndDrop />
+    </section>
+
+    <!-- === ТЕСТ: ДАННЫЕ ИЗ СТОРА === -->
+    <section>
+      <h2 class="text-h2">8. Данные из стора `useCowsStore`</h2>
+      <div class="store-preview">
+        <p class="text-h5">Всего записей в истории: <strong>{{ cowsStore.history.data.length }}</strong></p>
+
+        <div v-if="cowsStore.history.data.length === 0" class="empty">
+          Пока нет загруженных изображений
+        </div>
+        <ul v-else class="history-list">
+          <li v-for="item in cowsStore.history.data" :key="item.id" class="history-item">
+            🐄 <strong>Корова {{ item.animal_id }}</strong> — {{ item.weight }} кг,
+            {{ new Date(item.created_at).toLocaleString() }}
+          </li>
+        </ul>
+      </div>
+    </section>
   </div>
 </template>
 
@@ -72,10 +95,16 @@ import AppInput from '../components/ui/input.vue';
 import AppButton from '../components/ui/button.vue';
 import AppLabel from '../components/ui/label.vue';
 import FileItem from '../components/ui/fileItem.vue';
+import DragAndDrop from '../components/ui/DragDropUpload.vue';
 
-import { ref } from 'vue';
+// 🔹 Импорт стора — как у тебя: относительный путь
+import { useCowsStore } from '../stores/cows.js';
+
+// Подключаем стор
+const cowsStore = useCowsStore();
 
 // Для теста инпутов
+import { ref } from 'vue';
 const inputText = ref('');
 const inputPassword = ref('');
 const dateRange = ref([]);
@@ -110,5 +139,36 @@ h2 {
 
 .file-examples {
   align-items: flex-start;
+}
+
+/* === Стили для просмотра стора === */
+.store-preview {
+  padding: 16px;
+  background: #f9f9f9;
+  border: 1px solid #eee;
+  border-radius: 8px;
+  font-size: 14px;
+}
+
+.history-list {
+  list-style: none;
+  padding: 0;
+  margin-top: 10px;
+}
+
+.history-item {
+  padding: 8px 12px;
+  background: #fff;
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
+  margin-bottom: 8px;
+  font-size: 13px;
+  color: #271f12;
+}
+
+.empty {
+  color: #999;
+  font-style: italic;
+  padding: 10px 0;
 }
 </style>
