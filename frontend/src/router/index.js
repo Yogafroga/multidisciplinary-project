@@ -4,9 +4,15 @@ import { useAuthStore} from "../stores/auth.js";
 import LoginView from "../views/LoginView.vue";
 import RegisterView from "../views/RegisterView.vue";
 import MainView from "../views/MainView.vue";
+import TestCowsView from "../views/TestCowsView.vue";
+import TestReportsView from "../views/TestReportsView.vue";
+import TestComponents from "../views/TestComponents.vue";
 
 const routes = [
     { path: '/', redirect: '/login' },
+    { path: '/cows', component: TestCowsView }, // TODO: удалить после тестов
+    { path: '/reports', component: TestReportsView }, // TODO: удалить после тестов
+    { path: '/test', component: TestComponents }, // TODO: удалить после тестов
     { path: '/login', component: LoginView },
     { path: '/register', component: RegisterView },
     {
