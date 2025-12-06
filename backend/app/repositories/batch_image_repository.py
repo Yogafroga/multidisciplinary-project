@@ -29,5 +29,15 @@ class BatchImageRepository:
         )
         return result.scalar_one_or_none()
 
+    @staticmethod
+    async def get_or_create(session: AsyncSession, user_id: int, batch_uid: uuid.UUID) -> ImageBatch:
+        """Получить существующий батч или создать новый"""
+        batch = await BatchImageRepository.get_by_uid(session, batch_uid)
+        
+        if batch is None:
+            batch = await BatchImageRepository.create(session, user_id, batch_uid)
+        
+        return batch
+
 
 batch_image_repository = BatchImageRepository()
