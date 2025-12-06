@@ -15,4 +15,8 @@ api.interceptors.request.use((config) => {
     return config;
 });
 
+export async function getPosts(params) {
+    return await axios.get('https://jsonplaceholder.typicode.com/posts', { params })
+}
+
 export default api;
