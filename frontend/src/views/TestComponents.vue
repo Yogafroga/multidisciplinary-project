@@ -63,14 +63,21 @@
       </div>
     </section>
 
+    <!-- === DRAG & DROP: РЕЖИМ 1 — ФОТО === -->
     <section>
-      <h2 class="text-h2">7. DragDropUpload — Загрузка файлов</h2>
-      <DragAndDrop />
+      <h2 class="text-h2">7. DragDropUpload — Загрузка фото</h2>
+      <DragAndDrop variant="image" />
+    </section>
+
+    <!-- === DRAG & DROP: РЕЖИМ 2 — АРХИВ === -->
+    <section>
+      <h2 class="text-h2">8. DragDropUpload — Загрузка архива</h2>
+      <DragAndDrop variant="archive" />
     </section>
 
     <!-- === ТЕСТ: ДАННЫЕ ИЗ СТОРА === -->
     <section>
-      <h2 class="text-h2">8. Данные из стора `useCowsStore`</h2>
+      <h2 class="text-h2">9. Данные из стора `useCowsStore`</h2>
       <div class="store-preview">
         <p class="text-h5">Всего записей в истории: <strong>{{ cowsStore.history.data.length }}</strong></p>
 
@@ -97,10 +104,9 @@ import AppLabel from '../components/ui/label.vue';
 import FileItem from '../components/ui/fileItem.vue';
 import DragAndDrop from '../components/ui/DragDropUpload.vue';
 
-// 🔹 Импорт стора — как у тебя: относительный путь
+// 🔹 Импорт стора
 import { useCowsStore } from '../stores/cows.js';
 
-// Подключаем стор
 const cowsStore = useCowsStore();
 
 // Для теста инпутов
