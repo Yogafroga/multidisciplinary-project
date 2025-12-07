@@ -1,0 +1,107 @@
+@use '../variables' as *;
+@use '../base/typography' as *;
+@use "sass:color";
+
+.table-wrapper {
+    overflow: hidden;
+    background: transparent;
+    max-width: 1360px;
+    margin-left: 50px;
+}
+
+.data-table {
+    width: 100%;
+    border-collapse: collapse;
+
+    @extend .text-h4;
+}
+
+.data-table th {
+    background-color: transparent;
+    padding: 5px;
+    text-align: center;
+    border: 1px solid $border-color;
+
+    font-weight: $font-weight-bold;
+}
+
+.th-block {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    column-gap: 8px;
+}
+
+.sort-icon {
+
+    &:hover {
+        transform: scale(1.1);
+    }
+}
+
+.data-table td {
+    padding: 5px;
+    vertical-align: middle;
+    text-align: center;
+    border: 1px solid $border-color;
+}
+
+.custom-checkbox {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.selected-row {
+    background-color: rgba($color: #e17c54, $alpha: 0.3) !important;
+}
+
+.data-table tbody tr:hover {
+    background-color: rgba($color: #e17c54, $alpha: 0.5);
+}
+
+.action-btn {
+    cursor: pointer;
+    padding: 4px;
+    margin: 0 4px;
+    transition: opacity 0.2s;
+}
+
+.action-btn:hover {
+    opacity: 1;
+
+    &:hover {
+        transform: scale(1.1);
+    }
+}
+
+/* Пагинация */
+.pagination {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    padding: 16px;
+    background: transparent;
+    border-top: 1px solid #eee;
+    gap: 8px;
+
+    @extend .text-h4;
+    font-weight: $font-weight-bold;
+}
+
+.icon-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s;
+
+    &:hover {
+        transform: scale(1.1);
+    }
+}
+
+.icon-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
