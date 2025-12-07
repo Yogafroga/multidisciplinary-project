@@ -1,13 +1,5 @@
 <template>
   <div class="auth">
-    <!-- декоративные круги -->
-    <!-- <div class="circle-1" aria-hidden="true"></div>
-    <div class="circle-2" aria-hidden="true"></div>
-    <div class="circle-3" aria-hidden="true"></div>
-    <div class="circle-4" aria-hidden="true"></div>
-    <div class="circle-5" aria-hidden="true"></div>
-    <div class="circle-6" aria-hidden="true"></div> -->
-
     <div class="auth__card">
       <div class="auth__header">
         <Logo class="auth__logo" />
@@ -18,14 +10,14 @@
         <form v-if="mode === 'login'" class="auth__form" @submit.prevent="handleLogin">
           <div class="auth__field">
             <Label class="auth__label" for-id="username" required>Логин</Label>
-            <Input class="auth__input" id="username" v-model="loginForm.username" type="email"
-              :error="errors.usernameError" placeholder="Введите логин" required />
+            <Input class="auth__input" id="username" v-model="loginForm.username" type="text"
+                   :error="errors.usernameError" placeholder="Введите логин" required />
           </div>
 
           <div class="auth__field">
             <Label class="auth__label" for-id="password" required>Пароль</Label>
             <Input class="auth__input" id="password" v-model="loginForm.password" type="password"
-              :error="errors.passwordError" placeholder="Введите пароль" required />
+                   :error="errors.passwordError" placeholder="Введите пароль" required />
           </div>
 
           <Button class="auth__submit" type="submit" variant="primary" :loading="loading" :disabled="loading">
@@ -45,13 +37,13 @@
           <div class="auth__field">
             <Label class="auth__label" for-id="reg-login" required>Логин</Label>
             <Input class="auth__input" id="reg-login" v-model="registerForm.login" type="text"
-              :error="errors.registerLogin" placeholder="Введите логин" required />
+                   :error="errors.registerLogin" placeholder="Введите логин" required />
           </div>
 
           <div class="auth__field">
             <Label class="auth__label" for-id="reg-password" required>Пароль</Label>
             <Input class="auth__input" id="reg-password" v-model="registerForm.password" type="password"
-              :error="errors.registerPassword" placeholder="Введите пароль" required />
+                   :error="errors.registerPassword" placeholder="Введите пароль" required />
           </div>
 
           <!-- <div class="auth__field">
@@ -65,7 +57,7 @@
               <input type="checkbox" v-model="registerForm.agree" class="auth__checkbox-input" />
               Я принимаю условия
               <a href="#" class="auth__link">Пользовательского соглашения</a>
-              и даю согласие на <a href="#" class="auth__link">персональных данных</a> 
+              и даю согласие на <a href="#" class="auth__link">персональных данных</a>
             </label>
 
             <p v-if="errors.agreeError" class="auth__error">{{ errors.agreeError }}</p>
@@ -106,10 +98,9 @@ const router = useRouter()
 const route = useRoute()
 const auth = useAuthStore()
 
-// режим: 'login' или 'register' — определяем из пути
+// режим: 'login' или 'register'
 const mode = ref(route.path === '/register' ? 'register' : 'login')
 
-// следим за изменением маршрута (если пользователь переходит по ссылке)
 watch(() => route.path, (p) => {
   mode.value = p === '/register' ? 'register' : 'login'
 })
@@ -148,15 +139,14 @@ const goTo = (m) => {
   else router.push('/register').catch(() => { })
 }
 
-// Логика входа
+// Логика входа — без проверки сложности
 const handleLogin = async () => {
   errors.value.usernameError = ''
   errors.value.passwordError = ''
   error.value = ''
-  success.value = ''
 
   let hasError = false
-  if (!loginForm.value.username) {
+  if (!loginForm.value.username.trim()) {
     errors.value.usernameError = '*Введите логин'
     hasError = true
   }
@@ -177,29 +167,23 @@ const handleLogin = async () => {
   }
 }
 
-// Логика регистрации
+// Логика регистрации — без валидации пароля и без сравнения
 const handleRegister = async () => {
   errors.value.registerLogin = ''
   errors.value.registerPassword = ''
-  errors.value.registerConfirmPassword = ''
   errors.value.agreeError = ''
   error.value = ''
   success.value = ''
 
   let hasError = false
 
-  if (!registerForm.value.login) {
+  if (!registerForm.value.login.trim()) {
     errors.value.registerLogin = '*Введите логин'
     hasError = true
   }
 
   if (!registerForm.value.password) {
     errors.value.registerPassword = '*Введите пароль'
-    hasError = true
-  }
-
-  if (registerForm.value.password !== registerForm.value.confirmPassword) {
-    errors.value.registerConfirmPassword = '*Пароли не совпадают'
     hasError = true
   }
 
@@ -218,7 +202,6 @@ const handleRegister = async () => {
     success.value = 'Аккаунт создан! Перенаправление на вход...'
     setTimeout(() => {
       goTo('login')
-      // очищаем registerForm
       registerForm.value.login = ''
       registerForm.value.password = ''
       success.value = ''

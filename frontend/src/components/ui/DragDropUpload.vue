@@ -20,7 +20,6 @@
           @change="onFileChange"
           class="file-input"
       />
-      <!-- ✅ Добавлен @click -->
       <AppButton variant="upload" @click="selectFile">
         {{ buttonText }}
       </AppButton>
@@ -50,28 +49,22 @@ const config = {
   image: {
     accept: 'image/jpeg, image/png',
     multiple: true,
-    title: 'Перетащите файлы или нажмите для выбора',
-    hint: 'Доступные форматы: JPG, PNG',
+    title: 'Перетащите фото или нажмите для выбора',
+    hint: 'Поддерживаемые форматы: JPG, PNG',
     buttonText: 'Загрузить фото',
   },
   archive: {
     accept: '.zip',
     multiple: false,
-    title: 'Перетащите архив или нажмите для выбора',
-    hint: 'Доступные форматы: ZIP',
+    title: 'Перетащите ZIP-архив или нажмите для выбора',
+    hint: 'Поддерживаемый формат: ZIP',
     buttonText: 'Загрузить архив',
   },
 };
 
-const current = config[props.variant];
+const { accept, multiple, title, hint, buttonText } = config[props.variant];
 
-const accept = current.accept;
-const multiple = current.multiple;
-const title = current.title;
-const hint = current.hint;
-const buttonText = current.buttonText;
-
-// === События ===
+// === События перетаскивания ===
 const onDragEnter = (e) => {
   e.preventDefault();
   isDragOver.value = true;
@@ -93,7 +86,7 @@ const onDrop = (e) => {
   handleFiles(files);
 };
 
-// ✅ Вызов через кнопку
+// === Открытие диалога выбора файла ===
 const selectFile = () => {
   fileInput.value?.click();
 };
@@ -107,46 +100,40 @@ const onFileChange = (e) => {
 const handleFiles = async (files) => {
   if (!files.length) return;
 
-  const file = files[0]; // архив — один файл
-
   if (props.variant === 'image') {
-    const imageFiles = files.filter((f) =>
-        ['image/jpeg', 'image/jpg', 'image/png'].includes(f.type)
-    );
-
-    if (imageFiles.length !== files.length) {
-      alert('Разрешены только JPG и PNG файлы');
+    const validFiles = files.filter(f => ['image/jpeg', 'image/png', 'image/jpg'].includes(f.type));
+    if (validFiles.length !== files.length) {
+      alert('Недопустимый формат. Разрешены только JPG и PNG.');
       return;
     }
 
-    for (const f of imageFiles) {
-      console.log('[DRAGDROP] Загрузка фото:', f.name);
-      const result = await cowsStore.uploadImage(f, 'auto');
+    for (const file of validFiles) {
+      const result = await cowsStore.uploadImage(file, 'auto');
       if (result.success) {
-        console.log('[✅] Фото загружено:', result.data);
+        console.log('[✅] Фото успешно загружено:', result.data);
       } else {
-        console.error('[❌] Ошибка загрузки фото:', result.error);
+        alert(`Ошибка загрузки фото ${file.name}: ${result.error}`);
       }
     }
   }
 
   if (props.variant === 'archive') {
-    const ext = file.name.split('.').pop().toLowerCase();
-    if (ext !== 'zip') {
+    const file = files[0];
+    if (!file.name.toLowerCase().endsWith('.zip')) {
       alert('Разрешён только ZIP-архив');
       return;
     }
 
-    console.log('[DRAGDROP] Загрузка архива:', file.name);
-    const result = await cowsStore.uploadArchive(file, 'cow');
+    const result = await cowsStore.uploadArchive(file);
     if (result.success) {
-      console.log('[✅] Архив обработан:', result.data);
-      // Можно добавить уведомление
+      console.log('[✅] Архив успешно загружен:', result.data);
+      alert(`Архив "${file.name}" загружен: ${result.data.processed_images} файлов обработано`);
     } else {
-      console.error('[❌] Ошибка загрузки архива:', result.error);
+      alert(`Ошибка загрузки архива: ${result.error}`);
     }
   }
 
+  // Сброс input
   fileInput.value.value = '';
 };
 </script>

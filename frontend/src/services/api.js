@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const api = axios.create({
-    baseURL: 'http://127.0.0.1:8000/api', // потом будет сервак бэкенда
+    baseURL: 'http://127.0.0.1:8000', // потом будет сервак бэкенда
     headers: {
         'Content-Type': 'application/json',
     },
