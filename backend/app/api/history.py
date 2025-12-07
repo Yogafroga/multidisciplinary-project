@@ -15,6 +15,41 @@ from backend.schemas.history import HistoryItem, HistoryResponse
 
 router = APIRouter(tags=["history"])
 
+@router.get("history/{id}", response_model=HistoryResponse)
+async def get_history_by_id(
+        animal_id: str,
+        db: db_dependency):
+    base_query = (
+        select(CattleDetection, Image, ImageBatch, UserORM)
+        .join(Image, CattleDetection.image_id == Image.id)
+        .join(ImageBatch, Image.batch_id == ImageBatch.id)
+        .join(UserORM, ImageBatch.user_id == UserORM.id)
+    )
+    if animal_id is not None:
+        base_query = base_query.where(CattleDetection.animal_id == str(animal_id))
+    result = await db.execute(base_query)
+    rows: List[tuple[CattleDetection, Image, ImageBatch, UserORM]] = result.all()
+
+    items: list[HistoryItem] = []
+    for detection, image, batch, user in rows:
+        items.append(
+            HistoryItem(
+                id=detection.id,
+                animal_id=str(detection.nn_object_id) if detection.nn_object_id is not None else None,
+                weight=detection.weight,
+                weight_units="kg",
+                confidence=detection.confidence,  # добавишь поле в БД — маппишь сюда
+                image_url=image.url_path,
+                created_at=detection.create_datetime,
+                created_by=user.login,
+                batch_id=str(batch.uid),
+            )
+        )
+
+    return HistoryResponse(
+        data=items,
+    )
+
 
 @router.get("/history", response_model=HistoryResponse)
 async def get_history(
@@ -36,9 +71,7 @@ async def get_history(
 
     # Фильтр по animal_id (nn_object_id)
     if animal_id is not None:
-        print(animal_id)
         base_query = base_query.where(CattleDetection.animal_id == str(animal_id))
-        print(base_query)
 
     # Фильтр по дате (по create_datetime из cattle_detections)
     if start_date is not None:
