@@ -23,3 +23,6 @@ class HistoryResponse(BaseModel):
     total: int
     total_pages: int
     data: List[HistoryItem]
+
+class DeleteHistoryResponse(BaseModel):
+    message: str
