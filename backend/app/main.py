@@ -7,8 +7,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from backend.app.api.auth import db_dependency
 from backend.app.api import auth
 from backend.app.api import uploadImage
-from backend.app.api import uploadArchive
 from backend.app.services.auth import get_current_user
+from backend.app.api.history import router as history_router
 
 user_dependency = Annotated[dict, Depends(get_current_user)]
 
@@ -29,8 +29,7 @@ app.add_middleware(
 
 app.include_router(auth.router)
 app.include_router(uploadImage.router)
-app.include_router(uploadArchive.router)
-
+app.include_router(history_router, prefix="/api")
 
 @app.get("/", status_code=status.HTTP_200_OK)
 async def user(user: user_dependency, db: db_dependency):
