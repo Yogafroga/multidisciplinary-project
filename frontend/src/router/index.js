@@ -1,8 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router';
-import { useAuthStore} from "../stores/auth.js";
+import { useAuthStore } from "../stores/auth.js";
 
-import LoginView from "../views/LoginView.vue";
-import RegisterView from "../views/RegisterView.vue";
+import AuthView from "../views/AuthView.vue";
 import MainView from "../views/MainView.vue";
 import TestCowsView from "../views/TestCowsView.vue";
 import TestReportsView from "../views/TestReportsView.vue";
@@ -13,8 +12,8 @@ const routes = [
     { path: '/cows', component: TestCowsView }, // TODO: удалить после тестов
     { path: '/reports', component: TestReportsView }, // TODO: удалить после тестов
     { path: '/test', component: TestComponents }, // TODO: удалить после тестов
-    { path: '/login', component: LoginView },
-    { path: '/register', component: RegisterView },
+    { path: '/login', component: AuthView },
+    { path: '/register', component: AuthView },
     {
         path: '/main',
         component: MainView,
@@ -38,6 +37,6 @@ router.beforeEach((to, from, next) => {
     } else {
         next();
     }
-});
+}); 
 
 export default router;
