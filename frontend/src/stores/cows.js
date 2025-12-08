@@ -1,13 +1,20 @@
 import { defineStore } from 'pinia';
+import { ref } from 'vue'; // ✅ Добавлен импорт
 import api from '../services/api.js';
 
 export const useCowsStore = defineStore('cows', () => {
-    /**
-     * Загружает одно изображение
-     * @param {File} file - изображение (jpg, png)
-     * @param {string} animal_id - ID животного
-     * @returns {Promise<{ success: boolean, data?: any, error?: string }>}
-     */
+    // --- Состояние ---
+    const history = ref({
+        data: [],
+        page: 1,
+        limit: 20,
+        total: 0,
+        total_pages: 1,
+        loading: false,
+        error: null,
+    });
+
+    // --- Загрузка файлов ---
     const uploadImage = async (file, animal_id) => {
         const formData = new FormData();
         formData.append('file', file);
@@ -27,11 +34,6 @@ export const useCowsStore = defineStore('cows', () => {
         }
     };
 
-    /**
-     * Загружает ZIP-архив
-     * @param {File} file - ZIP-файл
-     * @returns {Promise<{ success: boolean, data?: any, error?: string }>}
-     */
     const uploadArchive = async (file) => {
         const formData = new FormData();
         formData.append('file', file);
@@ -50,8 +52,61 @@ export const useCowsStore = defineStore('cows', () => {
         }
     };
 
+    // --- История взвешиваний ---
+    const fetchHistory = async (params = {}) => {
+        history.value.loading = true;
+        history.value.error = null;
+
+        try {
+            const response = await api.get('/api/history', { params });
+            const data = response.data;
+
+            history.value.data = data.data || [];
+            history.value.page = data.page || 1;
+            history.value.limit = data.limit || 20;
+            history.value.total = data.total || 0;
+            history.value.total_pages = data.total_pages || 1;
+
+            return data;
+        } catch (error) {
+            const message = error.response?.data?.detail?.[0]?.msg || 'Ошибка загрузки истории';
+            history.value.error = message;
+            console.error('[CowsStore] fetchHistory error:', message);
+            throw error;
+        } finally {
+            history.value.loading = false;
+        }
+    };
+
+    const fetchHistoryByAnimalId = async (animal_id) => {
+        try {
+            const response = await api.get(`/api/history/${animal_id}`);
+            return response.data;
+        } catch (error) {
+            const message = error.response?.data?.detail?.[0]?.msg || 'Животное не найдено';
+            console.error('[CowsStore] fetchHistoryByAnimalId error:', message);
+            throw error;
+        }
+    };
+
+    const deleteHistoryRecord = async (id) => {
+        try {
+            const response = await api.delete(`/api/history/${id}`);
+            history.value.data = history.value.data.filter(item => item.id !== id);
+            return { success: true, message: response.data?.message };
+        } catch (error) {
+            const message = error.response?.data?.detail?.[0]?.msg || 'Не удалось удалить запись';
+            console.error('[CowsStore] deleteHistoryRecord error:', message);
+            return { success: false, error: message };
+        }
+    };
+
     return {
+        history,
         uploadImage,
         uploadArchive,
+        fetchHistory,
+        fetchHistoryByAnimalId,
+        deleteHistoryRecord,
     };
 });
