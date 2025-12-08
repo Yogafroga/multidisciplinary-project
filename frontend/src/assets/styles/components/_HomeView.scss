@@ -1,0 +1,117 @@
+@use '../variables' as *;
+@use '../base/typography' as *;
+@use "sass:color";
+
+.home {
+    width: 100vw;
+    height: 100vh;
+    background-color: $color-background-2;
+    overflow-x: hidden;
+}
+
+.home__content {
+    display: flex;
+    flex-direction: column;
+}
+
+.home__loading {
+    display: flex;
+    justify-content: flex-start;
+    align-items: flex-start;
+    flex-direction: row;
+    column-gap: 135px;
+}
+
+.home__upload {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    row-gap: 20px;
+
+    margin-top: 100px;
+    padding-left: 40px;
+    padding-bottom: 20px;
+}
+
+.home__files {
+    display: block;
+    overflow-y: auto;
+    scrollbar-gutter: stable;
+
+    width: 538px;
+    max-height: 221px;
+    padding: 16px;
+    border-radius: 24px;
+
+    background-color: $color-background-1;
+    border: 1px solid $border-color;
+
+    >*+* {
+        margin-top: 10px;
+    }
+}
+
+.home__files::-webkit-scrollbar {
+    width: 5px;
+}
+
+.home__files::-webkit-scrollbar-track {
+    border-color: transparent;
+}
+
+.home__files::-webkit-scrollbar-thumb {
+    background: $color-background-2;
+    border-radius: 1px;
+    border: 1px solid transparent;
+    background-clip: content-box;
+}
+
+.home__data,
+.home__controls {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    flex-direction: column;
+    row-gap: 24px;
+}
+
+.home__controls-one {
+    padding-top: 178px;
+}
+
+.home__controls-group {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    row-gap: 20px;
+
+    padding-top: 93px;
+}
+
+.home__export {
+    display: flex;
+    justify-content: flex-start;
+    flex-direction: column;
+    row-gap: $spacing-md;
+
+    margin-top: 68px;
+    ;
+}
+
+.home__controls-btn,
+.home__export-btn {
+    color: $text-color-primary !important;
+}
+
+// Анимация перехода между вкладками
+.fade-enter-active,
+.fade-leave-active {
+    transition: opacity 0.2s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+    opacity: 0;
+}

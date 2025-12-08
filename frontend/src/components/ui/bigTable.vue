@@ -1,4 +1,3 @@
-<!-- BigTable.vue -->
 <template>
     <div class="table-wrapper">
         <table class="data-table">
@@ -14,8 +13,6 @@
                         </div>
                     </th>
 
-                    <th>Фото</th>
-
                     <th v-for="field in head" :key="field.key" class="sortable"
                         :class="{ 'sorted': sort.key === field.key }" @click="field.sortable && toggleSort(field.key)">
                         <div class="th-block">
@@ -27,7 +24,6 @@
                         </div>
                     </th>
 
-                    <th>Действия</th>
                 </tr>
             </thead>
 
@@ -40,29 +36,32 @@
                             <CheckboxUnchecked v-else />
                         </div>
                     </td>
-                    <td>{{ item.photo }}</td>
-                    <td>{{ item.id }}</td>
-                    <td>{{ item.date }}</td>
-                    <td>{{ item.time }}</td>
-                    <td>{{ item.weight }}</td>
-                    <td class="actions-td">
-                        <button class="action-btn info" title="Скачать PDF" @click="downloadPDF">
-                            <Pdf_M />
-                        </button>
-                        <button class="action-btn delete" title="Скачать Excel" @click="downloadExcel">
-                            <File_M />
-                        </button>
+
+                    <!-- Динамические колонки на основе head -->
+                    <td v-for="field in head" :key="item.id + '-' + field.key">
+                        {{ item[field.key] }}
+
+                        <template v-if="field.key === 'action'">
+                            <div class="actions-td">
+                                <button class="action-btn info" title="Скачать PDF" @click="downloadPDF(item)">
+                                    <Pdf_M />
+                                </button>
+                                <button class="action-btn delete" title="Скачать Excel" @click="downloadExcel(item)">
+                                    <File_M />
+                                </button>
+                            </div>
+                        </template>
                     </td>
                 </tr>
             </tbody>
         </table>
 
         <div class="pagination">
-            <button class="icon-btn" :disabled="currentPage === 1" @click="prevPage(item)">
+            <button class="icon-btn" :disabled="currentPage === 1" @click="prevPage">
                 <previousIcon />
             </button>
             <span>{{ currentPage }} / {{ pagesCount }}</span>
-            <button class="icon-btn" :disabled="currentPage >= pagesCount" @click="nextPage(item)">
+            <button class="icon-btn" :disabled="currentPage >= pagesCount" @click="nextPage">
                 <nextIcon />
             </button>
         </div>
@@ -70,7 +69,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted } from 'vue'
+import { ref, reactive, computed } from 'vue'
 import { jsPDF } from "jspdf"
 import * as XLSX from "xlsx"
 
@@ -83,76 +82,84 @@ import SortIcon from '../../assets/icons/main/Chevron_Both.vue'
 import File_M from '../../assets/icons/files/X_M.vue'
 import Pdf_M from '../../assets/icons/files/Pdf_M.vue'
 
-// --- ДАННЫЕ ---
-const rawItems = ref([
-    { id: 18, date: '25.11.25', photo: '18_25.11.25_12:01.png', time: '12:01', weight: 648 },
-    { id: 19, date: '26.11.25', photo: '19_26.11.25_09:30.png', time: '09:30', weight: 712 },
-    ...Array.from({ length: 120 }, (_, i) => ({
-        photo: 'photo.p ng',
-        id: 20 + i,
-        date: ['25.11.25', '26.11.25', '27.11.25'][Math.floor(Math.random() * 3)],
-        time: `${String(Math.floor(Math.random() * 24)).padStart(2, '0')}:${String(Math.floor(Math.random() * 60)).padStart(2, '0')}`,
-        weight: 500 + Math.floor(Math.random() * 300)
-    }))
-]) // удалить
+const props = defineProps({
+    type: {
+        type: String,
+        default: 'weighings' // или 'operation'
+    }
+})
 
-const head = [
-    {
-        title: 'ID',
-        align: 'end',
-        key: 'id',
-        sortable: true,
-    },
-    {
-        title: 'Дата',
-        align: 'end',
-        key: 'date',
-        sortable: true,
-    },
-    {
-        title: 'Время',
-        align: 'end',
-        key: 'time',
-        sortable: true,
-    },
-    {
-        title: 'Вес/кг',
-        align: 'end',
-        key: 'weight',
-        sortable: true,
-    },
-]
+const head = computed(() => {
+    switch (props.type) {
+        case 'operation':
+            return [
+                { title: 'ID', key: 'id', sortable: true },
+                { title: 'Количество', key: 'count', sortable: true },
+                { title: 'Средний вес', key: 'average_weight', sortable: true },
+                { title: 'Общий вес', key: 'total_weight', sortable: true },
+                { title: 'Дата', key: 'date', sortable: true },
+                { title: 'Время', key: 'time', sortable: true },
+                { title: 'Действие', key: 'action', sortable: false }
+            ]
+
+        case 'weighings':
+        default:
+            return [
+                { title: 'Фото', key: 'photo', sortable: false },
+                { title: 'ID', key: 'id', sortable: true },
+                { title: 'Дата', key: 'date', sortable: true },
+                { title: 'Время', key: 'time', sortable: true },
+                { title: 'Вес/кг', key: 'weight', sortable: true },
+                { title: 'Действие', key: 'action', sortable: false }
+            ]
+    }
+})
+
+const items = computed(() => {
+    if (props.type === 'operation') {
+        // Пример данных для operation
+        return Array.from({ length: 48 }, (_, i) => ({
+            id: 1000 + i,
+            count: Math.floor(Math.random() * 50) + 1,
+            average_weight: Math.round((200 + Math.random() * 800) * 10) / 10,
+            total_weight: Math.round((1000 + Math.random() * 10000) * 10) / 10,
+            date: ['01.12.25', '02.12.25', '03.12.25'][Math.floor(Math.random() * 3)],
+            time: `${String(Math.floor(Math.random() * 24)).padStart(2, '0')}:${String(Math.floor(Math.random() * 60)).padStart(2, '0')}`
+        }))
+    }
+
+    // default: weighings
+    return [
+        { id: 18, date: '25.11.25', photo: '18_25.11.25_12:01.png', time: '12:01', weight: 648 },
+        { id: 19, date: '26.11.25', photo: '19_26.11.25_09:30.png', time: '09:30', weight: 712 },
+        ...Array.from({ length: 120 }, (_, i) => ({
+            photo: 'photo.png',
+            id: 20 + i,
+            date: ['25.11.25', '26.11.25', '27.11.25'][Math.floor(Math.random() * 3)],
+            time: `${String(Math.floor(Math.random() * 24)).padStart(2, '0')}:${String(Math.floor(Math.random() * 60)).padStart(2, '0')}`,
+            weight: 500 + Math.floor(Math.random() * 300)
+        }))
+    ]
+})
 
 const selectedItems = ref([])
 
 // --- ПАГИНАЦИЯ ---
-const pagination = reactive({
-    page: 1,
-    perPage: 10
-})
+const pagination = reactive({ page: 1, perPage: 10 })
 
 const currentPage = computed({
     get: () => pagination.page,
     set: (v) => pagination.page = v
 })
 
-const pagesCount = computed(() =>
-    Math.ceil(rawItems.value.length / pagination.perPage)
-)
+const pagesCount = computed(() => Math.max(1, Math.ceil(items.value.length / pagination.perPage)))
 
 // --- СОРТИРОВКА ---
-const sort = reactive({
-    key: null,
-    order: 'asc' // 'asc' | 'desc'
-})
+const sort = reactive({ key: null, order: 'asc' })
 
 const toggleSort = (key) => {
     if (sort.key === key) {
-        if (sort.order === 'asc') {
-            sort.order = 'desc'
-        } else {
-            sort.order = 'asc'
-        }
+        sort.order = sort.order === 'asc' ? 'desc' : 'asc'
     } else {
         sort.key = key
         sort.order = 'asc'
@@ -162,14 +169,14 @@ const toggleSort = (key) => {
 
 // Отсортированные + отпагинированные элементы
 const displayedItems = computed(() => {
-    let items = [...rawItems.value]
+    let list = [...items.value]
 
     if (sort.key) {
-        items.sort((a, b) => {
+        list.sort((a, b) => {
             let aVal = a[sort.key]
             let bVal = b[sort.key]
 
-            // Обработка даты
+            // Обработка даты в формате DD.MM.YY
             if (sort.key === 'date') {
                 const parse = (s) => {
                     if (!s) return 0
@@ -204,9 +211,8 @@ const displayedItems = computed(() => {
     // Пагинация
     const start = (pagination.page - 1) * pagination.perPage
     const end = start + pagination.perPage
-    return items.slice(start, end)
+    return list.slice(start, end)
 })
-
 
 // --- ВЫДЕЛЕНИЕ ---
 const allPageSelected = computed(() =>
@@ -224,10 +230,10 @@ const toggleSelectAll = () => {
     if (allPageSelected.value) {
         selectedItems.value = []
     } else {
-        selectedItems.value = rawItems.value.map(i => i.id)
+        // Выбираем все ID из текущего источника данных
+        selectedItems.value = items.value.map(i => i.id)
     }
 }
-
 
 // --- ПАГИНАЦИЯ ---
 const nextPage = () => {
@@ -240,7 +246,7 @@ const prevPage = () => {
     if (currentPage.value > 1) pagination.page--
 }
 
-// --- Пример реализации скачивания ---
+// --- Скачивание ---
 const downloadPDF = (item) => {
     const doc = new jsPDF()
     doc.text("Данные строки", 10, 10)
