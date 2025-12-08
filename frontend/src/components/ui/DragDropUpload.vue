@@ -7,7 +7,11 @@
       @dragleave="onDragLeave"
       @drop="onDrop"
   >
+  
     <div class="drag-drop-content">
+      <AppButton variant="upload" @click="selectFile">
+        {{ buttonText }}
+      </AppButton>
       <div class="text">
         <p class="text-h4">{{ title }}</p>
         <p class="text-h5 hint">{{ hint }}</p>
@@ -20,9 +24,6 @@
           @change="onFileChange"
           class="file-input"
       />
-      <AppButton variant="upload" @click="selectFile">
-        {{ buttonText }}
-      </AppButton>
     </div>
   </div>
 </template>

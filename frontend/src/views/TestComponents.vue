@@ -1,6 +1,6 @@
 <template>
   <div class="component-test-view">
-    <h1 class="text-h1">Тест компонентов</h1>
+    <h1 class="text-h1">🧪 Тест компонентов</h1>
 
     <section>
       <h2 class="text-h2">1. HeaderBar — Шапка</h2>
@@ -78,7 +78,9 @@
     <!-- === ТАБЛИЦА: Полная таблица === -->
     <section>
       <h2 class="text-h2">9. BigTable — Полная таблица</h2>
-      <BigTable />
+      <div v-if="cowsStore.history.loading" class="loading">Загрузка данных с сервера...</div>
+      <div v-else-if="cowsStore.history.error" class="error">Ошибка: {{ cowsStore.history.error }}</div>
+      <BigTable v-else />
     </section>
 
     <!-- === ТАБЛИЦА: Мини-таблица === -->
@@ -94,14 +96,14 @@
       </div>
     </section>
 
-    <!-- === ИНФО: Данные будут загружены позже === -->
+    <!-- === СТАТУС: Данные из API === -->
     <section>
-      <h2 class="text-h2">11. История взвешиваний (в разработке)</h2>
+      <h2 class="text-h2">11. Статус загрузки данных</h2>
       <div class="store-preview">
-        <p class="text-h5">Данные взвешиваний будут загружаться отдельно через API.</p>
-        <p class="text-h6" style="color: #666; margin-top: 8px;">
-          Сейчас вы можете протестировать загрузку файлов — результаты придут от бэкенда.
-        </p>
+        <p class="text-h5">Записей в истории: <strong>{{ cowsStore.history.data.length }}</strong></p>
+        <p>Загружено со страницы {{ cowsStore.history.page }} (всего страниц: {{ cowsStore.history.total_pages }})</p>
+        <p v-if="cowsStore.history.error" style="color: #d32f2f">❌ Ошибка: {{ cowsStore.history.error }}</p>
+        <p v-else-if="!cowsStore.history.loading" style="color: #4caf50">✅ Данные успешно загружены</p>
       </div>
     </section>
   </div>
@@ -118,8 +120,9 @@ import DragAndDrop from '../components/ui/DragDropUpload.vue';
 import BigTable from '../components/ui/bigTable.vue';
 import MinTable from '../components/ui/minTable.vue';
 import { useCowsStore } from '../stores/cows.js';
+import { onMounted } from 'vue';
 
-// Инициализация стора — нужна только для загрузки
+// Инициализация стора
 const cowsStore = useCowsStore();
 
 // Для теста инпутов
@@ -128,6 +131,14 @@ const inputText = ref('');
 const inputPassword = ref('');
 const dateRange = ref([]);
 const inputError = ref('');
+
+// Загружаем историю при открытии
+onMounted(async () => {
+  await cowsStore.fetchHistory({
+    page: 1,
+    limit: 20,
+  });
+});
 </script>
 
 <style scoped lang="scss">
@@ -170,5 +181,18 @@ h2 {
   border: 1px solid #eee;
   border-radius: 8px;
   font-size: 14px;
+}
+
+.loading {
+  padding: 20px;
+  text-align: center;
+  color: #666;
+  font-style: italic;
+}
+
+.error {
+  padding: 20px;
+  text-align: center;
+  color: #d32f2f;
 }
 </style>

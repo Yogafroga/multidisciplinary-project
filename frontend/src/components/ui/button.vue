@@ -12,6 +12,11 @@
         <UploadIcon class="btn-icon" />
         <span>Загрузить</span>
       </template>
+
+      <template v-else-if="variant === 'download'">
+        <span>Экспорт</span>
+        <DownloadIcon class="btn-icon" />
+      </template>
     </template>
   </button>
 </template>
@@ -19,6 +24,7 @@
 <script setup>
 import Loading from '../../assets/icons/main/Loading.vue';
 import UploadIcon from '../../assets/icons/main/Download.vue';
+import DownloadIcon from '../../assets/icons/main/Download.vue';
 
 const props = defineProps({
   loading: { type: Boolean, default: false },

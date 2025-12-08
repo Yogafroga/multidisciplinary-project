@@ -15,6 +15,13 @@
     column-gap: calc($spacing-sm * 4);
 }
 
+.nav-list {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    column-gap: 24px;
+}
+
 .download-block,
 .history-block,
 .right-section {
@@ -40,6 +47,7 @@
     text-decoration: none;
 }
 
+.logo,
 .text,
 .email {
     color: $color-background-2;

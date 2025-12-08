@@ -5,48 +5,50 @@
                 <LogoBig />
             </div>
         </div>
-        <div class="center-section">
-            <button class="download-block">
-                <DownloadIcon class="head-icon" />
-                <span class="text text-h3">Загрузка фотографий</span>
-            </button>
-            <button class="history-block">
-                <HistoryIcon class="head-icon" />
-                <span class="text text-h3">История взвешиваний</span>
-            </button>
-        </div>
+
+        <nav class="center-section" aria-label="Основная навигация">
+            <ul class="nav-list">
+                <li>
+                    <a href="#" class="nav-link download-block" :class="{ active: activeTab === 'upload' }"
+                        @click.prevent="$emit('change-tab', 'upload')" aria-current="upload">
+                        <DownloadIcon class="head-icon" />
+                        <span class="text text-h3">Загрузка фотографий</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="#" class="nav-link history-block" :class="{ active: activeTab === 'history' }"
+                        @click.prevent="$emit('change-tab', 'history')" aria-current="history">
+                        <HistoryIcon class="head-icon" />
+                        <span class="text text-h3">История взвешиваний</span>
+                    </a>
+                </li>
+            </ul>
+        </nav>
         <div class="right-section">
             <span class="email text-h4">{{ email }}</span>
-            <button>
+            <button class="logout-btn" @click="$emit('logout')" aria-label="Выйти">
                 <Logout class="head-icon" />
             </button>
-        </div>   
+        </div>
     </div>
 </template>
 
-<script>
+<script setup>
 import LogoBig from '../../assets/icons/logo/Logo-big.vue';
 import DownloadIcon from '../../assets/icons/main/Download.vue';
 import HistoryIcon from '../../assets/icons/main/History.vue';
 import Logout from '../../assets/icons/main/Logout.vue';
 
-export default {
-    name: 'Head',
-
-    props: {
-        email: {
-            type: String,
-            required: true
-        }
-    },
-
-    components: {
-        LogoBig,
-        DownloadIcon,
-        HistoryIcon,
-        Logout
+const props = defineProps({
+    email: String,
+    activeTab: {
+        type: String,
+        required: true,
+        validator: v => ['upload', 'history'].includes(v)
     }
-}
+})
+
+defineEmits(['change-tab', 'logout'])
 </script>
 
 <style scoped lang="scss">

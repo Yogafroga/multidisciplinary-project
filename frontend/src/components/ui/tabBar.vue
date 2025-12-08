@@ -72,8 +72,11 @@ const variantClass = computed(() => {
     return props.variant
 })
 
+const emit = defineEmits(["update:selectedTab"])
+
 function selectTab(tab) {
     selectedTab.value = tab
+    emit("update:selectedTab", tab)
 }
 </script>
 

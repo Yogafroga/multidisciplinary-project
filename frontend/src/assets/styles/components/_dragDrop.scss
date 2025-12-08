@@ -3,6 +3,11 @@
 @use "sass:color";
 
 .drag-drop-zone {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 530px;
+  height: 462px;
   border: 2px dashed $border-color;
   border-radius: $border-radius-md;
   transition: border-color 0.2s ease, background-color 0.2s ease;
