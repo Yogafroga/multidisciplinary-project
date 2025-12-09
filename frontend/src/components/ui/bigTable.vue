@@ -1,274 +1,366 @@
 <template>
-    <div class="table-wrapper">
-        <table class="data-table">
-            <thead>
-                <tr>
-                    <th class="checkbox-th">
-                        <div class="th-block">
-                            Выбрать
-                            <div class="custom-checkbox" @click="toggleSelectAll">
-                                <CheckboxChecked v-if="allPageSelected" />
-                                <CheckboxUnchecked v-else />
-                            </div>
-                        </div>
-                    </th>
-
-                    <th v-for="field in head" :key="field.key" class="sortable"
-                        :class="{ 'sorted': sort.key === field.key }" @click="field.sortable && toggleSort(field.key)">
-                        <div class="th-block">
-                            {{ field.title }}
-                            <SortIcon v-if="field.sortable" class="sort-icon" :class="{
-                                'active-asc': sort.key === field.key && sort.order === 'asc',
-                                'active-desc': sort.key === field.key && sort.order === 'desc'
-                            }" />
-                        </div>
-                    </th>
-
-                </tr>
-            </thead>
-
-            <tbody>
-                <tr v-for="item in displayedItems" :key="item.id"
-                    :class="{ 'selected-row': selectedItems.includes(item.id) }">
-                    <td class="checkbox-td">
-                        <div class="custom-checkbox" @click="toggleRow(item.id)">
-                            <CheckboxChecked v-if="selectedItems.includes(item.id)" />
-                            <CheckboxUnchecked v-else />
-                        </div>
-                    </td>
-
-                    <!-- Динамические колонки на основе head -->
-                    <td v-for="field in head" :key="item.id + '-' + field.key">
-                        {{ item[field.key] }}
-
-                        <template v-if="field.key === 'action'">
-                            <div class="actions-td">
-                                <button class="action-btn info" title="Скачать PDF" @click="downloadPDF(item)">
-                                    <Pdf_M />
-                                </button>
-                                <button class="action-btn delete" title="Скачать Excel" @click="downloadExcel(item)">
-                                    <File_M />
-                                </button>
-                            </div>
-                        </template>
-                    </td>
-                </tr>
-            </tbody>
-        </table>
-
-        <div class="pagination">
-            <button class="icon-btn" :disabled="currentPage === 1" @click="prevPage">
-                <previousIcon />
-            </button>
-            <span>{{ currentPage }} / {{ pagesCount }}</span>
-            <button class="icon-btn" :disabled="currentPage >= pagesCount" @click="nextPage">
-                <nextIcon />
-            </button>
-        </div>
+  <div class="table-wrapper">
+    <!-- Загрузка -->
+    <div v-if="cowsStore.history.loading" class="loading">
+      Загрузка данных...
     </div>
+
+    <!-- Ошибка -->
+    <div v-else-if="cowsStore.history.error" class="error">
+      Ошибка: {{ cowsStore.history.error }}
+      <button @click="loadData">Повторить</button>
+    </div>
+
+    <!-- Таблица -->
+    <table v-else class="data-table">
+      <thead>
+      <tr>
+        <!-- Чекбокс "Выбрать все" -->
+        <th class="checkbox-th">
+          <div class="th-block">
+            Выбрать
+            <div class="custom-checkbox" @click="toggleSelectAll">
+              <CheckboxChecked v-if="allPageSelected" />
+              <CheckboxUnchecked v-else />
+            </div>
+          </div>
+        </th>
+
+        <!-- Заголовки из head -->
+        <th
+            v-for="field in head"
+            :key="field.key"
+            class="sortable"
+            :class="{ 'sorted': sort.key === field.key }"
+            @click="field.sortable && toggleSort(field.key)"
+        >
+          <div class="th-block">
+            {{ field.title }}
+            <SortIcon
+                v-if="field.sortable"
+                class="sort-icon"
+                :class="{
+                  'active-asc': sort.key === field.key && sort.order === 'asc',
+                  'active-desc': sort.key === field.key && sort.order === 'desc',
+                }"
+            />
+          </div>
+        </th>
+      </tr>
+      </thead>
+
+      <tbody>
+      <tr
+          v-for="item in displayedItems"
+          :key="item.id"
+          :class="{ 'selected-row': selectedItems.includes(item.id) }"
+      >
+        <!-- Чекбокс строки -->
+        <td class="checkbox-td">
+          <div class="custom-checkbox" @click="toggleRow(item.id)">
+            <CheckboxChecked v-if="selectedItems.includes(item.id)" />
+            <CheckboxUnchecked v-else />
+          </div>
+        </td>
+
+        <!-- Данные и действия -->
+        <td v-for="field in head" :key="field.key">
+          <!-- Фото -->
+          <img
+              v-if="field.key === 'photo'"
+              :src="item.image_url"
+              :alt="`Фото ${item.animal_id}`"
+              style="width: 40px; height: 40px; object-fit: cover; border-radius: 4px;"
+          />
+
+          <!-- Дата -->
+          <template v-else-if="field.key === 'date'">
+            {{ formatDate(item.created_at) }}
+          </template>
+
+          <!-- Время -->
+          <template v-else-if="field.key === 'time'">
+            {{ formatTime(item.created_at) }}
+          </template>
+
+          <!-- Вес -->
+          <template v-else-if="field.key === 'weight'">
+            {{ item.weight }} кг
+          </template>
+
+          <!-- Действия -->
+          <template v-else-if="field.key === 'action'">
+            <div class="actions-td">
+              <button class="action-btn info" title="Скачать PDF" @click="downloadPDF(item)">
+                <Pdf_M />
+              </button>
+              <button class="action-btn excel" title="Скачать Excel" @click="downloadExcel(item)">
+                <File_M />
+              </button>
+              <button class="action-btn delete" title="Удалить запись" @click="deleteRecord(item.id)">
+                <TrashIcon />
+              </button>
+            </div>
+          </template>
+
+          <!-- Остальные поля -->
+          <template v-else>
+            {{ item[field.key] }}
+          </template>
+        </td>
+      </tr>
+      </tbody>
+    </table>
+
+    <!-- Пагинация -->
+    <div v-if="!cowsStore.history.loading" class="pagination">
+      <button class="icon-btn" :disabled="currentPage === 1" @click="prevPage">
+        <previousIcon />
+      </button>
+      <span>{{ currentPage }} / {{ pagesCount }}</span>
+      <button class="icon-btn" :disabled="currentPage >= pagesCount" @click="nextPage">
+        <nextIcon />
+      </button>
+    </div>
+  </div>
 </template>
 
 <script setup>
-import { ref, reactive, computed } from 'vue'
-import { jsPDF } from "jspdf"
-import * as XLSX from "xlsx"
+import { ref, computed, onMounted } from 'vue';
+import { useCowsStore } from '../../stores/cows.js';
+import { jsPDF } from 'jspdf';
+import * as XLSX from 'xlsx';
 
 // Иконки
-import previousIcon from '../../assets/icons/main/Left.vue'
-import nextIcon from '../../assets/icons/main/Right.vue'
-import CheckboxUnchecked from '../../assets/icons/main/Check_Box_Blank.vue'
-import CheckboxChecked from '../../assets/icons/main/Check_Box.vue'
-import SortIcon from '../../assets/icons/main/Chevron_Both.vue'
-import File_M from '../../assets/icons/files/X_M.vue'
-import Pdf_M from '../../assets/icons/files/Pdf_M.vue'
+import previousIcon from '../../assets/icons/main/Left.vue';
+import nextIcon from '../../assets/icons/main/Right.vue';
+import CheckboxUnchecked from '../../assets/icons/main/Check_Box_Blank.vue';
+import CheckboxChecked from '../../assets/icons/main/Check_Box.vue';
+import SortIcon from '../../assets/icons/main/Chevron_Both.vue';
+import File_M from '../../assets/icons/files/X_M.vue';
+import Pdf_M from '../../assets/icons/files/Pdf_M.vue';
+import TrashIcon from '../../assets/icons/main/Trash.vue'; // Создайте этот компонент
 
+const cowsStore = useCowsStore();
 const props = defineProps({
-    type: {
-        type: String,
-        default: 'weighings' // или 'operation'
-    }
-})
+  type: {
+    type: String,
+    default: 'weighings', // 'weighings' | 'operation'
+  },
+});
 
+// --- Заголовки ---
 const head = computed(() => {
-    switch (props.type) {
-        case 'operation':
-            return [
-                { title: 'ID', key: 'id', sortable: true },
-                { title: 'Количество', key: 'count', sortable: true },
-                { title: 'Средний вес', key: 'average_weight', sortable: true },
-                { title: 'Общий вес', key: 'total_weight', sortable: true },
-                { title: 'Дата', key: 'date', sortable: true },
-                { title: 'Время', key: 'time', sortable: true },
-                { title: 'Действие', key: 'action', sortable: false }
-            ]
-
-        case 'weighings':
-        default:
-            return [
-                { title: 'Фото', key: 'photo', sortable: false },
-                { title: 'ID', key: 'id', sortable: true },
-                { title: 'Дата', key: 'date', sortable: true },
-                { title: 'Время', key: 'time', sortable: true },
-                { title: 'Вес/кг', key: 'weight', sortable: true },
-                { title: 'Действие', key: 'action', sortable: false }
-            ]
-    }
-})
-
-const items = computed(() => {
-    if (props.type === 'operation') {
-        // Пример данных для operation
-        return Array.from({ length: 48 }, (_, i) => ({
-            id: 1000 + i,
-            count: Math.floor(Math.random() * 50) + 1,
-            average_weight: Math.round((200 + Math.random() * 800) * 10) / 10,
-            total_weight: Math.round((1000 + Math.random() * 10000) * 10) / 10,
-            date: ['01.12.25', '02.12.25', '03.12.25'][Math.floor(Math.random() * 3)],
-            time: `${String(Math.floor(Math.random() * 24)).padStart(2, '0')}:${String(Math.floor(Math.random() * 60)).padStart(2, '0')}`
-        }))
-    }
-
-    // default: weighings
+  if (props.type === 'operation') {
     return [
-        { id: 18, date: '25.11.25', photo: '18_25.11.25_12:01.png', time: '12:01', weight: 648 },
-        { id: 19, date: '26.11.25', photo: '19_26.11.25_09:30.png', time: '09:30', weight: 712 },
-        ...Array.from({ length: 120 }, (_, i) => ({
-            photo: 'photo.png',
-            id: 20 + i,
-            date: ['25.11.25', '26.11.25', '27.11.25'][Math.floor(Math.random() * 3)],
-            time: `${String(Math.floor(Math.random() * 24)).padStart(2, '0')}:${String(Math.floor(Math.random() * 60)).padStart(2, '0')}`,
-            weight: 500 + Math.floor(Math.random() * 300)
-        }))
-    ]
-})
+      { title: 'ID', key: 'id', sortable: true },
+      { title: 'Количество', key: 'count', sortable: true },
+      { title: 'Ср. вес', key: 'average_weight', sortable: true },
+      { title: 'Общий вес', key: 'total_weight', sortable: true },
+      { title: 'Дата', key: 'date', sortable: true },
+      { title: 'Время', key: 'time', sortable: true },
+      { title: 'Действия', key: 'action', sortable: false },
+    ];
+  }
 
-const selectedItems = ref([])
+  return [
+    { title: 'Фото', key: 'photo', sortable: false },
+    { title: 'ID', key: 'id', sortable: true },
+    { title: 'Дата', key: 'date', sortable: true },
+    { title: 'Время', key: 'time', sortable: true },
+    { title: 'Вес/кг', key: 'weight', sortable: true },
+    { title: 'Действия', key: 'action', sortable: false },
+  ];
+});
 
-// --- ПАГИНАЦИЯ ---
-const pagination = reactive({ page: 1, perPage: 10 })
+// --- Пагинация ---
+const currentPage = ref(1);
+const limit = ref(10);
 
-const currentPage = computed({
-    get: () => pagination.page,
-    set: (v) => pagination.page = v
-})
+const pagesCount = computed(() => Math.max(1, Math.ceil(cowsStore.history.total / limit.value)));
 
-const pagesCount = computed(() => Math.max(1, Math.ceil(items.value.length / pagination.perPage)))
-
-// --- СОРТИРОВКА ---
-const sort = reactive({ key: null, order: 'asc' })
+// --- Сортировка ---
+const sort = ref({ key: 'created_at', order: 'desc' });
 
 const toggleSort = (key) => {
-    if (sort.key === key) {
-        sort.order = sort.order === 'asc' ? 'desc' : 'asc'
-    } else {
-        sort.key = key
-        sort.order = 'asc'
-    }
-    pagination.page = 1
-}
+  if (sort.value.key === key) {
+    sort.value.order = sort.value.order === 'asc' ? 'desc' : 'asc';
+  } else {
+    sort.value.key = key;
+    sort.value.order = 'asc';
+  }
+  currentPage.value = 1;
+  loadData();
+};
 
-// Отсортированные + отпагинированные элементы
+// --- Загрузка данных ---
+const loadData = async () => {
+  await cowsStore.fetchHistory({
+    page: currentPage.value,
+    limit: limit.value,
+    sort: sort.value.key,
+    order: sort.value.order.toUpperCase(),
+  });
+};
+
+onMounted(() => {
+  loadData();
+});
+
+// --- Отображаемые данные ---
 const displayedItems = computed(() => {
-    let list = [...items.value]
+  if (!cowsStore.history.data) return [];
 
-    if (sort.key) {
-        list.sort((a, b) => {
-            let aVal = a[sort.key]
-            let bVal = b[sort.key]
+  return cowsStore.history.data.map((item) => ({
+    ...item,
+    id: item.id,
+    animal_id: item.animal_id,
+    weight: item.weight,
+    image_url: item.image_url,
+    created_at: item.created_at,
+  }));
+});
 
-            // Обработка даты в формате DD.MM.YY
-            if (sort.key === 'date') {
-                const parse = (s) => {
-                    if (!s) return 0
-                    const [d, m, y] = s.split('.').map(Number)
-                    return new Date(2000 + y, m - 1, d).getTime()
-                }
-                aVal = parse(aVal)
-                bVal = parse(bVal)
-            }
+// --- Форматирование даты и времени ---
+const formatDate = (iso) => {
+  const d = new Date(iso);
+  return d.toLocaleDateString('ru-RU');
+};
 
-            // Время
-            if (sort.key === 'time') {
-                const toMinutes = (t) => {
-                    if (!t) return 0
-                    const [h, m] = t.split(':').map(Number)
-                    return h * 60 + m
-                }
-                aVal = toMinutes(aVal)
-                bVal = toMinutes(bVal)
-            }
+const formatTime = (iso) => {
+  const d = new Date(iso);
+  return d.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
+};
 
-            // Нулевые значения
-            if (aVal == null) aVal = ''
-            if (bVal == null) bVal = ''
-
-            if (aVal < bVal) return sort.order === 'asc' ? -1 : 1
-            if (aVal > bVal) return sort.order === 'asc' ? 1 : -1
-            return 0
-        })
-    }
-
-    // Пагинация
-    const start = (pagination.page - 1) * pagination.perPage
-    const end = start + pagination.perPage
-    return list.slice(start, end)
-})
-
-// --- ВЫДЕЛЕНИЕ ---
-const allPageSelected = computed(() =>
-    displayedItems.value.length > 0 &&
-    displayedItems.value.every(i => selectedItems.value.includes(i.id))
-)
-
-const toggleRow = (id) => {
-    const idx = selectedItems.value.indexOf(id)
-    if (idx > -1) selectedItems.value.splice(idx, 1)
-    else selectedItems.value.push(id)
-}
-
-const toggleSelectAll = () => {
-    if (allPageSelected.value) {
-        selectedItems.value = []
-    } else {
-        // Выбираем все ID из текущего источника данных
-        selectedItems.value = items.value.map(i => i.id)
-    }
-}
-
-// --- ПАГИНАЦИЯ ---
+// --- Пагинация ---
 const nextPage = () => {
-    if (currentPage.value < pagesCount.value) {
-        pagination.page++
-    }
-}
+  if (currentPage.value < pagesCount.value) {
+    currentPage.value++;
+    loadData();
+  }
+};
 
 const prevPage = () => {
-    if (currentPage.value > 1) pagination.page--
-}
+  if (currentPage.value > 1) {
+    currentPage.value--;
+    loadData();
+  }
+};
 
-// --- Скачивание ---
+// --- Выделение строк ---
+const selectedItems = ref([]);
+
+const allPageSelected = computed(() =>
+    displayedItems.value.length > 0 &&
+    displayedItems.value.every((i) => selectedItems.value.includes(i.id))
+);
+
+const toggleRow = (id) => {
+  const idx = selectedItems.value.indexOf(id);
+  if (idx > -1) selectedItems.value.splice(idx, 1);
+  else selectedItems.value.push(id);
+};
+
+const toggleSelectAll = () => {
+  if (allPageSelected.value) {
+    selectedItems.value = [];
+  } else {
+    selectedItems.value = displayedItems.value.map((i) => i.id);
+  }
+};
+
+// --- Экспорт ---
 const downloadPDF = (item) => {
-    const doc = new jsPDF()
-    doc.text("Данные строки", 10, 10)
+  const doc = new jsPDF();
+  doc.setFontSize(16);
+  doc.text(`Запись ID: ${item.animal_id}`, 10, 10);
+  doc.setFontSize(12);
+  doc.text(`Вес: ${item.weight} кг`, 10, 20);
+  doc.text(`Дата: ${formatDate(item.created_at)} ${formatTime(item.created_at)}`, 10, 30);
 
-    let y = 20
-    Object.keys(item).forEach(key => {
-        doc.text(`${key}: ${item[key]}`, 10, y)
-        y += 10
-    })
-
-    doc.save(`row-${item.id}.pdf`)
-}
+  if (item.image_url) {
+    const img = new Image();
+    img.crossOrigin = 'Anonymous';
+    img.src = item.image_url;
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      canvas.width = img.width;
+      canvas.height = img.height;
+      ctx.drawImage(img, 0, 0);
+      const dataUrl = canvas.toDataURL('image/jpeg');
+      doc.addImage(dataUrl, 'JPEG', 10, 40, 50, 50);
+      doc.save(`record_${item.animal_id}.pdf`);
+    };
+    img.onerror = () => {
+      doc.save(`record_${item.animal_id}.pdf`);
+    };
+  } else {
+    doc.save(`record_${item.animal_id}.pdf`);
+  }
+};
 
 const downloadExcel = (item) => {
-    const worksheet = XLSX.utils.json_to_sheet([item])
-    const workbook = XLSX.utils.book_new()
-    XLSX.utils.book_append_sheet(workbook, worksheet, "Row")
+  const worksheet = XLSX.utils.json_to_sheet([item]);
+  const workbook = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(workbook, worksheet, 'Запись');
+  XLSX.writeFile(workbook, `record_${item.animal_id}.xlsx`);
+};
 
-    XLSX.writeFile(workbook, `row-${item.id}.xlsx`)
-}
+// --- Удаление записи ---
+const deleteRecord = async (id) => {
+  if (!confirm('Удалить эту запись?')) return;
+
+  const res = await cowsStore.deleteHistoryRecord(id);
+  if (res.success) {
+    alert('Запись удалена');
+    // Перезагрузим текущую страницу
+    loadData();
+  } else {
+    alert('Ошибка: ' + res.error);
+  }
+};
 </script>
 
 <style scoped lang="scss">
 @use '../../assets/styles/components/bigTable';
+
+.actions-td {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.action-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: none;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+
+  &.delete {
+    color: #d32f2f;
+    &:hover {
+      background-color: #ffebee;
+    }
+  }
+
+  &.info {
+    color: #1976d2;
+    &:hover {
+      background-color: #e3f2fd;
+    }
+  }
+
+  &.excel {
+    color: #2e7d32;
+    &:hover {
+      background-color: #e8f5e9;
+    }
+  }
+}
 </style>
