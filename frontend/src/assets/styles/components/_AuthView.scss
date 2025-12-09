@@ -2,7 +2,6 @@
 @use '../base/typography' as *;
 @use "sass:color";
 
-// Стили по размеры страницы: 1492 * 486
 .auth {
     display: flex;
     align-items: center;
@@ -10,7 +9,7 @@
     position: relative;
 
     min-height: 100vh;
-    padding: 2rem 1rem;
+    padding: clamp(1rem, 2vw, 2rem) clamp(0.5rem, 2vw, 1rem);
     overflow: hidden;
     background: $color-background-2;
     background-image:
@@ -19,75 +18,76 @@
             transparent 30px,
             #EAE4D2 30px,
             #EAE4D2 50px);
-
-    // &>.circle-1,
-    // &>.circle-2,
-    // &>.circle-3,
-    // &>.circle-4,
-    // &>.circle-5,
-    // &>.circle-6 {
-    //     content: '';
-    //     position: absolute;
-    //     border-radius: 50%;
-    //     background: $color-background-1;
-    // }
-
-    // .circle-1 {
-    //     width: 414px;
-    //     height: 414px;
-    //     top: -37%;
-    //     left: -13%;
-    // }
-
-    // .circle-2 {
-    //     width: 188px;
-    //     height: 188px;
-    //     bottom: -1%;
-    //     left: 4%;
-    //     z-index: 10;
-    // }
-
-    // .circle-3 {
-    //     width: 169px;
-    //     height: 169px;
-    //     top: 7%;
-    //     left: 35%;
-    // }
-
-    // .circle-4 {
-    //     width: 208px;
-    //     height: 208px;
-    //     top: 70%;
-    //     left: 48%;
-    // }
-
-    // .circle-5 {
-    //     width: 256px;
-    //     height: 256px;
-    //     bottom: 50%;
-    //     right: 5%;
-    // }
-
-    // .circle-6 {
-    //     width: 436px;
-    //     height: 436px;
-    //     bottom: -20%;
-    //     right: -5%;
-    // }
 }
+
+.auth>.circle {
+    position: absolute;
+    border-radius: 50%;
+    background: $color-background-1;
+    z-index: 0;
+    pointer-events: none;
+    transition: all 0.3s ease;
+}
+
+.circle-1 {
+    width: clamp(300px, 20vw, 513px);
+    height: clamp(300px, 20vw, 513px);
+    top: -27%;
+    left: -13%;
+}
+
+.circle-2 {
+    width: clamp(150px, 10vw, 188px);
+    height: clamp(150px, 10vw, 188px);
+    bottom: -1%;
+    left: 4%;
+    z-index: 10;
+}
+
+.circle-3 {
+    width: clamp(130px, 9vw, 169px);
+    height: clamp(130px, 9vw, 169px);
+    top: 4%;
+    left: 43%;
+    z-index: 10 !important;
+}
+
+.circle-4 {
+    width: clamp(160px, 12vw, 208px);
+    height: clamp(160px, 12vw, 208px);
+    top: 70%;
+    left: 48%;
+}
+
+.circle-5 {
+    width: clamp(316px, 15vw, 425px);
+    height: clamp(316px, 15vw, 425px);
+    bottom: 50%;
+    right: 5%;
+}
+
+.circle-6 {
+    width: clamp(300px, 20vw, 436px);
+    height: clamp(300px, 20vw, 436px);
+    bottom: -20%;
+    right: -5%;
+}
+
+
 
 .auth__card {
     display: flex;
+    flex-direction: column;
     justify-content: center;
     align-items: center;
-    flex-direction: column;
 
-    margin-left: 161px;
+    margin-left: clamp(40px, 10%, 161px);
     border: 2px solid $border-color;
-    border-radius: 20px;
-    padding: 40px 24px;
-    gap: 40px;
+    border-radius: clamp(10px, 2vw, 20px);
+    padding: clamp(24px, 2vw, 40px);
+    gap: clamp(20px, 2vw, 40px);
     z-index: 1;
+    width: clamp(380px, 30%, 480px);
 }
 
 .auth__header {
@@ -98,42 +98,40 @@
 
 .auth__logo {
     color: $text-color-primary;
+    height: auto;
 }
 
 .auth__content {
     display: flex;
+    flex-direction: column;
+    row-gap: clamp(12px, 1.5vw, 16px);
     justify-content: center;
     align-items: center;
-    row-gap: 16px;
-    flex-direction: column;
 }
 
 .auth__form {
     display: flex;
-    justify-content: center;
-    align-items: center;
     flex-direction: column;
-    row-gap: 16px;
+    row-gap: clamp(12px, 1vw, 16px);
+    width: 100%;
 }
 
 .auth__field {
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: clamp(6px, 1vw, 8px);
 }
 
 .auth__error {
     color: #CC4E4E;
     text-align: center;
     margin: 0;
-
     @extend .text-h6;
 }
 
 .auth__switch {
     text-align: center;
     margin: 0;
-
     @extend .text-h6;
 
     a {
@@ -148,7 +146,7 @@
 
 .auth__illustration {
     position: absolute;
-    right: 15%;
+    right: clamp(5%, 10vw, 15%);
     top: 50%;
     transform: translateY(-50%);
     z-index: 1;
@@ -156,31 +154,122 @@
 }
 
 .auth__cow {
-    width: 630px;
+    width: clamp(300px, 35vw, 630px);
     height: auto;
     filter: drop-shadow(0 10px 20px rgba(0, 0, 0, 0.1));
 }
 
 .auth__checkbox {
-    width: 366px;
-
+    width: clamp(250px, 30vw, 366px);
     @extend .text-h6;
     font-weight: $font-weight-bold;
 }
 
 .auth__checkbox-label {
     vertical-align: middle;
-    gap: 8px;
+    gap: clamp(4px, 1vw, 8px);
     cursor: pointer;
 }
 
 .auth__checkbox-input {
-    width: 16px;
-    height: 16px;
+    width: clamp(12px, 2vw, 16px);
+    height: clamp(12px, 2vw, 16px);
     margin-top: 2px;
 }
 
 .auth__link {
     text-decoration: underline;
     cursor: pointer;
+}
+
+@media (min-width: 1441px) {
+    .auth {
+        justify-content: flex-start;
+        padding: clamp(2rem, 3vw, 4rem) clamp(2rem, 5vw, 6rem);
+    }
+
+    .auth__card {
+        margin-left: clamp(150px, 10%, 250px);
+        width: clamp(480px, 35%, 490px);
+        padding: clamp(40px, 3vw, 60px);
+        gap: clamp(40px, 3vw, 60px);
+        border-radius: clamp(20px, 2vw, 30px);
+    }
+
+    .auth__content {
+        row-gap: clamp(16px, 2vw, 24px);
+    }
+
+    .auth__form {
+        row-gap: clamp(16px, 2vw, 24px);
+    }
+
+    .auth__field {
+        gap: clamp(8px, 1.5vw, 16px);
+    }
+
+    .auth__checkbox {
+        width: clamp(366px, 30%, 480px);
+    }
+
+    .auth__illustration {
+        right: clamp(15%, 10vw, 20%);
+    }
+
+    .auth__cow {
+        width: clamp(630px, 40vw, 900px);
+    }
+}
+
+@media (max-width: 1024px) {
+    .auth {
+        justify-content: center;
+        padding: 2rem 1rem;
+    }
+
+    .auth__card {
+        margin-left: 0;
+        min-width: 60%;
+        padding: 2rem;
+    }
+
+    .auth__illustration {
+        display: none;
+    }
+
+    .circle-1,
+    .circle-3,
+    .circle-4,
+    .circle-6 {
+        display: none;
+    }
+
+    .circle-2,
+    .circle-5 {
+        width: clamp(100px, 15vw, 188px);
+        height: clamp(100px, 15vw, 188px);
+    }
+}
+
+@media (max-width: 768px) {
+    .auth__card {
+        padding: 1.5rem;
+        gap: 16px;
+    }
+
+    .auth__form {
+        row-gap: 12px;
+    }
+
+    .auth__field {
+        gap: 6px;
+    }
+
+    @media (max-width: 768px) {
+
+        .circle-2,
+        .circle-5 {
+            display: none;
+        }
+    }
 }

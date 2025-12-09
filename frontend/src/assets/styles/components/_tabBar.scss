@@ -64,3 +64,9 @@
         column-gap: 6px;
     }
 }
+
+@media (max-width: 1439px) {
+    .tab-bar {
+        padding-inline: 18px;
+    }
+}

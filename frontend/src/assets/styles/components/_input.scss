@@ -8,7 +8,6 @@
 
   .input-wrapper {
     position: relative;
-    width: 100%;
   }
 
   input {
@@ -20,9 +19,9 @@
 
   // --- Обычные инпуты ---
   input.text-input {
-    width: $input-width;
-    height: $input-height;
-    padding: $padding-md $padding-sm;
+    width: var(--input-width, #{$input-width});
+    height: var(--input-height, #{$input-height});
+    padding: var(--input-padding, #{$padding-md $padding-sm});
 
     outline: none;
     transition: border-color 0.2s ease;
@@ -68,8 +67,11 @@
     }
 
     .date-picker-popup {
+      position: fixed;
       background-color: $color-background-1;
       color: $color-background-2;
+      inset: auto !important;
+      margin-top: 40px;
     }
     
     :deep(.vc-title),

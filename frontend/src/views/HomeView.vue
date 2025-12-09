@@ -30,18 +30,21 @@
 
                     <div class="home__data">
                         <div class="home__controls">
-                            <div class="home__controls-one" v-if="selectedAnimalTab === 'one'">
-                                <MinTable type="default" variant="green" />
-                            </div>
-
-                            <div class="home__controls-group" v-else="selectedAnimalTab === 'group'">
-                                <div>
-                                    <MinTable type="cows" variant="green" />
-                                </div>
-                                <div>
+                            <Transition name="fade" mode="out-in">
+                                <div class="home__controls-one" v-if="selectedAnimalTab === 'one'">
                                     <MinTable type="default" variant="green" />
                                 </div>
-                            </div>
+
+                                <div class="home__controls-group" v-else="selectedAnimalTab === 'group'">
+                                    <div>
+                                        <MinTable type="cows" variant="green" />
+                                    </div>
+                                    <div>
+                                        <MinTable type="default" variant="green" />
+                                    </div>
+                                </div>
+                            </Transition>
+
 
                             <Button class="home__controls-btn" :disabled="!isDataReady || isCalculating"
                                 @click="handlCalculate">Рассчитать</Button>
@@ -60,24 +63,34 @@
                 <div v-else class="home__history">
                     <div class="home__actions">
                         <div class="home__action-left">
-                            <TabBar variant="small" />
+                            <TabBar variant="small" @update:selectedTab="selectedJournal = $event" />
                             <div class="home__filter">
                                 <div class="home-filter-content">
                                     <Lable class="home__filter-lable" for-id="id">Номер бирки:</Lable>
-                                    <Input class="home__filter-input" id="id" type="text" placeholder="ID" />
+                                    <Input class="home__filter-input-id small" id="id" type="text" placeholder="ID" />
                                 </div>
                                 <div class="home-filter-content">
                                     <Lable class="home__filter-lable" for-id="date">Выбор периода:</Lable>
-                                    <Input class="home__filter-input" id="date" type="daterange" placeholder="Период" variant="calendar-green" v-model="dateRange"/>
+                                    <Input class="home__filter-input" id="date" type="daterange" placeholder="Период"
+                                        variant="calendar-green" v-model="dateRange" />
                                 </div>
                             </div>
-                            <div class="export">
-                                <TabBar variant="export-small" />
-                                <Button variant="download" ></Button>
-                            </div>
+                        </div>
+                        <div class="home__action-export">
+                            <TabBar variant="export-small" />
+                            <Button variant="download"></Button>
                         </div>
                     </div>
-                    <BigTable type="operation" />
+                    <div class="home__table">
+                        <Transition name="fade" mode="out-in">
+                            <div v-if="selectedJournal === 'log'">
+                                <BigTable type="weighings" :filter-id="filterId" :filter-date-range="dateRange" />
+                            </div>
+                            <div v-else-if="selectedJournal === 'history'">
+                                <BigTable type="operation" :filter-id="filterId" :filter-date-range="dateRange" />
+                            </div>
+                        </Transition>
+                    </div>
                 </div>
             </Transition>
         </div>
@@ -87,7 +100,7 @@
 
 
 <script setup>
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 
 import Header from '../components/ui/head.vue'
 import TabBar from '../components/ui/tabBar.vue'
@@ -104,6 +117,7 @@ const currentTab = ref('upload')
 const selectedAnimalTab = ref('one')
 const isDataReady = ref(false) // данные для расчёта готовы
 const isCalculating = ref(false) // сейчас идёт расчёт
+const selectedJournal = ref('log')
 
 const handleLogout = () => {
     // логика выхода

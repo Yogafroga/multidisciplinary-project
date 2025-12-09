@@ -25,7 +25,7 @@
     <!-- Компонент выбора даты -->
     <DatePicker v-if="showDatePicker && type === 'daterange'" v-model="dateRange" is-range
       :model-config="{ type: 'string', mask: 'YYYY-MM-DD' }" @update:modelValue="onDateRangeChange"
-      @close="showDatePicker = false" class="date-picker-popup" />
+      @close="showDatePicker = false" class="date-picker-popup" :teleport="true" />
 
     <span v-if="error" class="error-message">{{ error }}</span>
   </div>

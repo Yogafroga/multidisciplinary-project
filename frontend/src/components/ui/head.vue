@@ -12,20 +12,20 @@
                     <a href="#" class="nav-link download-block" :class="{ active: activeTab === 'upload' }"
                         @click.prevent="$emit('change-tab', 'upload')" aria-current="upload">
                         <DownloadIcon class="head-icon" />
-                        <span class="text text-h3">Загрузка фотографий</span>
+                        <span class="text">Загрузка фотографий</span>
                     </a>
                 </li>
                 <li>
                     <a href="#" class="nav-link history-block" :class="{ active: activeTab === 'history' }"
                         @click.prevent="$emit('change-tab', 'history')" aria-current="history">
                         <HistoryIcon class="head-icon" />
-                        <span class="text text-h3">История взвешиваний</span>
+                        <span class="text">История взвешиваний</span>
                     </a>
                 </li>
             </ul>
         </nav>
         <div class="right-section">
-            <span class="email text-h4">{{ email }}</span>
+            <span class="email">{{ email }}</span>
             <button class="logout-btn" @click="$emit('logout')" aria-label="Выйти">
                 <Logout class="head-icon" />
             </button>

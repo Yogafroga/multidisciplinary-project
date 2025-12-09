@@ -7,6 +7,7 @@
     justify-content: space-between;
     align-items: center;
     padding: calc($spacing-xs * 4.5) calc($spacing-sm * 5);
+    min-width: 768px;
     background-color: $color-background-1;
 }
 
@@ -47,8 +48,85 @@
     text-decoration: none;
 }
 
+.text {
+    @extend .text-h3;
+}
+
+.email {
+    @extend .text-h4;
+}
+
 .logo,
 .text,
 .email {
     color: $color-background-2;
+}
+
+@media (max-width: 1094px) {
+    .text {
+        font-family: $font-family-primary;
+        font-size: $font-size-h4;
+        font-weight: $font-weight-regular;
+        line-height: $line-height-normal;
+    }
+
+    .email {
+        font-family: $font-family-primary;
+        font-size: $font-size-h5;
+        font-weight: $font-weight-regular;
+        line-height: $line-height-normal;
+    }
+
+    .logo {
+        width: 90%;
+    }
+}
+
+@media (min-width: 1495px) {
+    .header-bar {
+        justify-content: center;
+        align-items: center;
+        column-gap: 50px;
+    }
+}
+
+@media (max-width: 975px) {
+    .text {
+        font-family: $font-family-primary;
+        font-size: $font-size-h5;
+        font-weight: $font-weight-regular;
+        line-height: $line-height-normal;
+    }
+
+    .email {
+        font-family: $font-family-primary;
+        font-size: $font-size-h6;
+        font-weight: $font-weight-regular;
+        line-height: $line-height-normal;
+    }
+
+    .logo {
+        width: 90%;
+    }
+}
+
+@media (max-width: 897px) {
+    .email {
+        padding-left: 10px;
+    }
+}
+
+@media (max-width: 874px) {
+    .logo {
+        width: 76%;
+    }
+}
+
+@media (max-width: 837px) {
+
+    .head-icon,
+    .logout-btn {
+        width: 21px;
+        height: 21px;
+    }
 }
