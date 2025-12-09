@@ -161,7 +161,7 @@ const handleLogin = async () => {
   loading.value = false
 
   if (res.success) {
-    router.push('/main')
+    router.push('/home')
   } else {
     error.value = res.error?.detail || '*Ошибка входа'
   }

@@ -2,21 +2,15 @@ import { createRouter, createWebHistory } from 'vue-router';
 import { useAuthStore } from "../stores/auth.js";
 
 import AuthView from "../views/AuthView.vue";
-import MainView from "../views/MainView.vue";
-import TestCowsView from "../views/TestCowsView.vue";
-import TestReportsView from "../views/TestReportsView.vue";
-import TestComponents from "../views/TestComponents.vue";
+import HomeView from "../views/HomeView.vue";
 
 const routes = [
     { path: '/', redirect: '/login' },
-    { path: '/cows', component: TestCowsView }, // TODO: удалить после тестов
-    { path: '/reports', component: TestReportsView }, // TODO: удалить после тестов
-    { path: '/test', component: TestComponents }, // TODO: удалить после тестов
     { path: '/login', component: AuthView },
     { path: '/register', component: AuthView },
     {
-        path: '/main',
-        component: MainView,
+        path: '/home',
+        component: HomeView,
         meta: { requiresAuth: true },
     },
 ];
@@ -33,10 +27,10 @@ router.beforeEach((to, from, next) => {
     if (to.meta.requiresAuth && !auth.isAuthenticated()) {
         next('/login');
     } else if ((to.path === '/login' || to.path === '/register') && auth.isAuthenticated()) {
-        next('/main');
+        next('/home');
     } else {
         next();
     }
-}); 
+});
 
 export default router;
