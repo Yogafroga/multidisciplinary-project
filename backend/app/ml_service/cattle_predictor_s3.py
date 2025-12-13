@@ -184,9 +184,9 @@ class CattleWeightPredictorS3:
         """Allows testing locally with a file path."""
         with open(image_path, "rb") as f:
             image_bytes = f.read()
-        return self._predict_from_bytes(image_bytes, target_size=target_size, return_mask_b64=return_mask_b64)
+        return self.predict_from_bytes(image_bytes, target_size=target_size, return_mask_b64=return_mask_b64)
 
-    def _predict_from_bytes(self, image_bytes: bytes, target_size=(224, 224), return_mask_b64: bool = False) -> Dict:
+    def predict_from_bytes(self, image_bytes: bytes, target_size=(224, 224), return_mask_b64: bool = False) -> Dict:
         img = self._decode_and_preprocess(image_bytes, target_size=target_size)
         img_batch = tf.expand_dims(img, axis=0)
 

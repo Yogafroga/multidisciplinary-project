@@ -74,7 +74,8 @@ class ArchiveService:
                                 "status": "success",
                                 "file_data": file_data,
                                 "animal_id": animal_id,
-                                "original_name": Path(file_name).name
+                                "original_name": Path(file_name).name,
+                                "image_bytes": image_data
                             }
 
                         except Exception as e:
@@ -124,7 +125,8 @@ class ArchiveService:
                         session=session,
                         file_data=res["file_data"],
                         batch_id=batch.id,
-                        animal_id=res["animal_id"]
+                        animal_id=res["animal_id"],
+                        image_bytes=res.get("image_bytes")
                     )
                     
                     successful.append({

@@ -11,6 +11,12 @@ class Settings(BaseSettings):
     UPLOAD_DIR: Path = Path("backend/data")
     MAX_FILE_SIZE_MB: int = 5
 
+    # Настройки ML моделей
+    ML_MODELS_DIR: Path = Path("backend/app/ml_models")
+    SEG_MODEL_PATH: Path = Path("backend/app/ml_models/best_seg_model.keras")
+    REG_MODEL_PATH: Path = Path("backend/app/ml_models/best_reg_model.keras")
+    ML_ENABLED: bool = True  # Флаг для включения/отключения ML предсказаний
+
     # Настройки VK Cloud S3
     VK_S3_ENDPOINT_URL: str = "https://hb.ru-msk.vkcloud-storage.ru"
     VK_S3_REGION: str = "ru-msk"
