@@ -2,43 +2,61 @@
   <div class="data-table__wrapper">
     <table class="data-table head" :class="[variant]">
       <thead>
-      <tr class="data-table__head-tr" :class="{ 'data-table__row_loading': loading }">
-        <th v-for="field in currentHeaders" :key="field.key">
-          {{ field.title }}
-        </th>
-      </tr>
+        <tr class="data-table__head-tr" :class="{ 'data-table__row_loading': loading }">
+          <th v-for="field in currentHeaders" :key="field.key">
+            {{ field.title }}
+          </th>
+        </tr>
       </thead>
     </table>
   </div>
   <div class="data-table__scroll">
     <table class="data-table body" :class="[variant]">
       <tbody>
-      <tr v-for="item in displayedItems" :key="item.id">
-        <td v-for="field in currentHeaders" :key="field.key">
-          <div class="cell-content">
-                            <span class="cell-text">
-                                {{ field.display ? field.display(item[field.key]) : item[field.key] }}
-                            </span>
-            <component v-if="field.icon" :is="field.icon" class="cell-icon" />
-          </div>
-        </td>
-      </tr>
+        <tr v-for="item in displayedItems" :key="item.id">
+          <td v-for="field in currentHeaders" :key="field.key">
+            <template v-if="field.key === 'animal_id' && props.mode === 'one'">
+              <input v-model="item.animal_id" @input="onIdInput($event.target.value, item.id)" class="table-input"
+                placeholder="Введите ID" type="text" />
+            </template>
+            <template v-else>
+              <div class="cell-content">
+                <span class="cell-text">
+                  {{ field.display ? field.display(item[field.key]) : item[field.key] }}
+                </span>
+                <component v-if="field.icon" :is="field.icon" class="cell-icon" />
+              </div>
+            </template>
+
+          </td>
+        </tr>
       </tbody>
     </table>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, onMounted, watch } from 'vue';
 import { useCowsStore } from '../../stores/cows.js';
 
 const props = defineProps({
   variant: String,
   type: String,
+  mode: String,
+  items: {
+    type: Array,
+    default: () => []
+  }
 });
 
 const cowsStore = useCowsStore();
 const loading = ref(false);
+
+const emit = defineEmits(['id-changed']);
+
+const onIdInput = (value, itemId) => {
+  emit('id-changed', { id: itemId, animal_id: value });
+};
 
 /* Настройки колонок */
 const currentHeaders = computed(() => {
@@ -101,30 +119,44 @@ const currentHeaders = computed(() => {
   }
 });
 
-// Преобразуем данные из history в формат MinTable
 const displayedItems = computed(() => {
-  if (props.type === 'cows') {
-    const data = cowsStore.history.data;
-    const count = data.length;
-    const totalWeight = data.reduce((sum, item) => sum + (item.weight || 0), 0);
-    const averageWeight = count ? (totalWeight / count).toFixed(1) : 0;
+  const items = props.items || [];
 
+  // Для режима "one" или "group" до расчёта/после
+  if (props.mode === 'one' || props.mode === 'group') {
+    return items.map(item => ({
+      id: item.id,
+      'file-id': item.name || 'file.jpg',
+      animal_id: item.animal_id || '',
+      // Дата и время из uploadTime (клиентское) или из result.created_at (серверное)
+      date: item.uploadTime ? formatDate(item.uploadTime) : 
+            (item.result?.created_at ? formatDate(item.result.created_at) : '—'),
+      time: item.uploadTime ? formatTime(item.uploadTime) : 
+            (item.result?.created_at ? formatTime(item.result.created_at) : '—'),
+      weight: item.weight ?? item.result?.weight ?? '—',
+    }));
+  }
+
+  // Для сводной таблицы по группе (cows)
+  if (props.type === 'cows') {
+    const cows = cowsStore.calculatedGroup || {};
     return [{
       id: 'summary',
-      count,
-      averageWeight,
-      totalWeight: totalWeight.toFixed(1)
+      count: cows.count ?? '—',
+      averageWeight: cows.averageWeight ?? '—',
+      totalWeight: cows.totalWeight ?? '—',
     }];
   }
 
-  return cowsStore.history.data.map(item => ({
-    'file-id': item.image_url?.split('/').pop() || 'photo.jpg',
-    animal_id: item.animal_id,
-    date: formatDate(item.created_at),
-    time: formatTime(item.created_at),
-    weight: item.weight,
-  }));
+  return [];
 });
+
+
+const localItems = ref(props.items || []);
+watch(() => props.items, (newItems) => {
+  localItems.value = newItems || [];
+});
+
 
 const formatDate = (iso) => {
   const d = new Date(iso);

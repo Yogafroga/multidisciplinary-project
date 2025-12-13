@@ -15,7 +15,7 @@ export const useCowsStore = defineStore('cows', () => {
     });
 
     // --- Загрузка файлов ---
-    const uploadImage = async (file, animal_id) => {
+    const uploadImage = async (file, animal_id, onProgress) => {
         const formData = new FormData();
         formData.append('file', file);
         formData.append('animal_id', animal_id);
@@ -25,6 +25,11 @@ export const useCowsStore = defineStore('cows', () => {
                 headers: {
                     'Content-Type': 'multipart/form-data',
                 },
+                onUploadProgress: (event) => {
+                    if (!event.total) return;
+                    const percent = Math.round((event.loaded * 100) / event.total);
+                    onProgress?.(event.loaded, percent);
+                }
             });
 
             return { success: true, data: response.data };
@@ -58,18 +63,21 @@ export const useCowsStore = defineStore('cows', () => {
         history.value.error = null;
 
         try {
-            const response = await api.get('/api/history', { params });
-            const data = response.data;
+            const { data } = await api.get('/api/history', { params });
 
-            history.value.data = data.data || [];
-            history.value.page = data.page || 1;
-            history.value.limit = data.limit || 20;
-            history.value.total = data.total || 0;
-            history.value.total_pages = data.total_pages || 1;
+            history.value.data = data.data ?? [];
+            history.value.page = data.page ?? 1;
+            history.value.limit = data.limit ?? 20;
+            history.value.total = data.total ?? 0;
+            history.value.total_pages = data.total_pages ?? 1;
 
             return data;
         } catch (error) {
-            const message = error.response?.data?.detail?.[0]?.msg || 'Ошибка загрузки истории';
+            const message =
+                error.response?.data?.detail ||
+                error.message ||
+                'Ошибка загрузки истории';
+
             history.value.error = message;
             console.error('[CowsStore] fetchHistory error:', message);
             throw error;

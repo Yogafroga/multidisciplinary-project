@@ -14,17 +14,16 @@
                         <TabBar variant="animals" @update:selectedTab="selectedAnimalTab = $event" />
 
                         <div v-if="selectedAnimalTab === 'one'">
-                            <DragDropUpload class="home__upload-image-drop" variant="image" />
+                            <DragDropUpload class="home__upload-image-drop" variant="image" @file-added="onFileAdded" />
                         </div>
 
                         <div v-else-if="selectedAnimalTab === 'group'">
-                            <DragDropUpload class="home__upload-archive-drop" variant="archive" />
+                            <DragDropUpload class="home__upload-archive-drop" variant="archive"
+                                @file-added="onFileAdded" />
                         </div>
 
                         <div class="home__files">
-                            <FileItem :file="{ name: 'report.pdf', loaded: 2_500_000, total: 5_000_000 }" />
-                            <FileItem :file="{ name: 'photo.jpg', loaded: 5_000_000, total: 5_000_000 }" />
-                            <FileItem :file="{ name: 'data.raw', loaded: 1_000_000, total: 5_000_000 }" />
+                            <FileItem v-for="f in fileItems" :key="f.id" :file="f" @remove="removeFile" />
                         </div>
                     </div>
 
@@ -32,22 +31,24 @@
                         <div class="home__controls">
                             <Transition name="fade" mode="out-in">
                                 <div class="home__controls-one" v-if="selectedAnimalTab === 'one'">
-                                    <MinTable type="default" variant="green" />
+                                    <MinTable type="default" variant="green" :mode="selectedAnimalTab"
+                                        :items="fileItems" @id-changed="checkIfReady" />
                                 </div>
 
                                 <div class="home__controls-group" v-else="selectedAnimalTab === 'group'">
                                     <div>
-                                        <MinTable type="cows" variant="green" />
+                                        <MinTable type="cows" variant="green" :mode="selectedAnimalTab" />
                                     </div>
                                     <div>
-                                        <MinTable type="default" variant="green" />
+                                        <MinTable type="default" variant="green" :mode="selectedAnimalTab"
+                                            :items="fileItems" />
                                     </div>
                                 </div>
                             </Transition>
 
 
-                            <Button class="home__controls-btn" :disabled="!isDataReady || isCalculating"
-                                @click="handlCalculate">Рассчитать</Button>
+                            <Button class="home__controls-btn" :disabled="!canCalculate || isCalculating"
+                                :loading="isCalculating" @click="handlCalculate">Рассчитать</Button>
                         </div>
 
                         <div class="home__export">
@@ -67,13 +68,18 @@
                             <div class="home__filter">
                                 <div class="home-filter-content">
                                     <Lable class="home__filter-lable" for-id="id">Номер бирки:</Lable>
-                                    <Input class="home__filter-input-id small" id="id" type="text" placeholder="ID" />
+                                    <Input class="home__filter-input-id small" id="id" type="text" placeholder="ID"
+                                        v-model="filterId" />
                                 </div>
                                 <div class="home-filter-content">
                                     <Lable class="home__filter-lable" for-id="date">Выбор периода:</Lable>
                                     <Input class="home__filter-input" id="date" type="daterange" placeholder="Период"
                                         variant="calendar-green" v-model="dateRange" />
                                 </div>
+                                <Button v-if="hasActiveFilters" class="reset-filters-btn" @click="resetFilters"
+                                    title="Сбросить все фильтры" variant="reset">
+                                </Button>
+
                             </div>
                         </div>
                         <div class="home__action-export">
@@ -101,6 +107,8 @@
 
 <script setup>
 import { ref, computed } from 'vue'
+import { useCowsStore } from '../stores/cows'
+import JSZip from 'jszip';
 
 import Header from '../components/ui/head.vue'
 import TabBar from '../components/ui/tabBar.vue'
@@ -115,18 +123,289 @@ import BigTable from '../components/ui/bigTable.vue'
 const userEmail = ref('user@example.com')
 const currentTab = ref('upload')
 const selectedAnimalTab = ref('one')
-const isDataReady = ref(false) // данные для расчёта готовы
-const isCalculating = ref(false) // сейчас идёт расчёт
 const selectedJournal = ref('log')
+const selectedAnimalId = ref('')
+const isCalculating = ref(false) // при расчёте
+const selectedExportTab = ref('pdf')
+const fileItems = ref([])
+const uploadedImageINfo = ref(null) // ответ сервера после uploadImage
+const uploadedArchiveInfo = ref(null) // ответ сервера после uploadArchive
+const filterId = ref('')
+const dateRange = ref({ start: null, end: null });
 
-const handleLogout = () => {
-    // логика выхода
+const hasActiveFilters = computed(() => {
+    return filterId.value.trim() !== '' ||
+        dateRange.value.start !== null ||
+        dateRange.value.end !== null;
+});
+
+const cowSore = useCowsStore()
+
+// Функция сброса
+const resetFilters = () => {
+    filterId.value = '';
+    dateRange.value = { start: null, end: null };
+};
+
+// когда все данные есть
+const isDataReady = computed(() => {
+    if (selectedAnimalTab === 'one') {
+        return !!selectedAnimalId.value && !!uploadedImageINfo.value
+    } else {
+        return !!uploadedArchiveInfo.value
+    }
+})
+
+// Если сервер не дает id при загрузке архива
+function extractIdFromFilename(filename) {
+    if (!filename) return '';
+    // Получаем имя файла без пути и расширения
+    const name = filename.split('/').pop().split('.')[0]; // cow_001
+    const parts = name.split(/[_-]/); // разделяем по _ или -
+    const last = parts[parts.length - 1];
+    // Если последняя часть — числа, возвращаем её
+    if (/^\d+$/.test(last)) return last;
+    // иначе возвращаем всё имя без расширения как fallback
+    return name;
 }
 
-// Логика клика на конопку расчета
+// функцию для извлечения файлов из ZIP
+async function extractArchiveFiles(zipFile) {
+    const reader = new FileReader();
+
+    return new Promise((resolve, reject) => {
+        reader.onload = async (e) => {
+            try {
+                const zip = await JSZip.loadAsync(e.target.result);
+                const extractedFiles = [];
+
+                const promises = [];
+
+                zip.forEach((relativePath, file) => {
+                    if (file.dir) return;
+
+                    promises.push(
+                        file.async('blob').then(blob => {
+                            extractedFiles.push({
+                                name: relativePath,
+                                size: blob.size,
+                                blob,
+                                addedTime: new Date()
+                            });
+                        })
+                    );
+                });
+
+                await Promise.all(promises);
+                resolve(extractedFiles);
+            } catch (err) {
+                reject(err);
+            }
+        };
+
+        reader.onerror = reject;
+        reader.readAsArrayBuffer(zipFile);
+    });
+}
+
+// Получение данных файла
+const onFileAdded = (metaItems, rawFiles, variant) => {
+    if (!rawFiles.length) return;
+
+    rawFiles.forEach(async (file, i) => {
+        const meta = metaItems[i];
+        const fileItem = {
+            id: crypto.randomUUID(),
+            ...meta,
+            file,
+            loaded: 0,
+            progress: 0,
+            status: 'pending',
+            result: null,
+            animal_id: meta.animal_id || '',
+            weight: null,
+            uploadTime: null
+        };
+
+        // Если это архив — извлекаем файлы заранее
+        if (variant === 'archive') {
+            fileItem.status = 'extracting';
+            try {
+                const extractedFiles = await extractArchiveFiles(file);
+                fileItem.extractedFiles = extractedFiles;
+                fileItem.status = 'pending';
+            } catch (error) {
+                fileItem.status = 'error';
+                fileItem.errorMessage = 'Ошибка извлечения архива';
+                console.error('Archive extraction failed:', error);
+            }
+        }
+
+        fileItems.value.push(fileItem);
+    });
+};
+
+// ОТправлени данных для расчета на сервер
 async function handlCalculate() {
+    if (!canCalculate.value || isCalculating.value) return;
 
+    isCalculating.value = true;
+
+    try {
+        const itemsCopy = [...fileItems.value];
+
+        for (let idx = 0; idx < itemsCopy.length; idx++) {
+            const item = itemsCopy[idx];
+            const currentItem = fileItems.value.find(f => f.id === item.id);
+
+            if (!currentItem) continue;
+
+            // --- ОДИНОЧНОЕ ИЗОБРАЖЕНИЕ ---
+            if (item.variant === 'image') {
+                if (!item.animal_id || !item.animal_id.trim()) {
+                    currentItem.status = 'error';
+                    currentItem.errorMessage = 'Нет ID животного';
+                    continue;
+                }
+
+                currentItem.status = 'processing';
+
+                const result = await cowSore.uploadImage(item.file, item.animal_id);
+
+                if (!result.success) {
+                    currentItem.status = 'error';
+                    currentItem.errorMessage = result.error || 'Ошибка обработки';
+                    continue;
+                }
+
+                const fileResult = result.data.files?.[0] || result.data;
+
+                // Обновляем текущий элемент
+                currentItem.result = fileResult;
+                currentItem.weight = fileResult.weight ?? null;
+                currentItem.animal_id = item.animal_id;
+                currentItem.status = 'success';
+
+                // Размер и прогресс
+                currentItem.size = item.file.size;
+                currentItem.loaded = item.file.size;
+                currentItem.progress = 100;
+
+                currentItem.uploadTime = fileResult.created_at
+                    ? new Date(fileResult.created_at)
+                    : new Date();
+
+                continue;
+            }
+
+            // --- ZIP-АРХИВ ---
+            if (item.variant === 'archive') {
+                if (!currentItem.extractedFiles || !currentItem.extractedFiles.length) {
+                    currentItem.status = 'error';
+                    currentItem.errorMessage = 'Архив не был извлечён или пуст';
+                    continue;
+                }
+
+                currentItem.status = 'uploading-archive';
+
+                const result = await cowSore.uploadArchive(item.file);
+
+                if (!result.success) {
+                    currentItem.status = 'error';
+                    currentItem.errorMessage = result.error || 'Ошибка загрузки архива';
+                    continue;
+                }
+
+                const details = result.data.details || [];
+
+                if (!details.length) {
+                    currentItem.status = 'error';
+                    currentItem.errorMessage = 'В архиве нет поддерживаемых изображений';
+                    continue;
+                }
+
+                // Создаём новые элементы для каждого обработанного файла
+                const newItems = details.map((detail) => {
+                    // Ищем соответствующий файл из извлечённых
+                    const extractedFile = currentItem.extractedFiles.find(
+                        ef => ef.name === detail.filename
+                    ) || { size: 0 }; // fallback
+
+                    const uploadTime = detail.created_at
+                        ? new Date(detail.created_at)
+                        : new Date();
+
+                    return {
+                        id: crypto.randomUUID(),
+                        variant: 'image',
+                        name: detail.filename || 'file.jpg',
+                        size: extractedFile.size || 0,
+                        loaded: extractedFile.size || 0,
+                        progress: 100,
+                        status: detail.status === 'success' ? 'success' : 'error',
+                        result: detail,
+                        animal_id: detail.animal_id ?? extractIdFromFilename(detail.filename),
+                        weight: detail.weight ?? null,
+                        uploadTime: uploadTime,
+                        file: extractedFile.blob || null,
+                    };
+                });
+
+                // Заменяем архив на список обработанных файлов
+                const currentIdx = fileItems.value.findIndex(f => f.id === item.id);
+                if (currentIdx !== -1) {
+                    fileItems.value.splice(currentIdx, 1, ...newItems);
+                }
+
+                // Пропускаем вставленные элементы в цикле
+                idx += newItems.length - 1;
+
+                continue;
+            }
+
+            // Неизвестный тип
+            currentItem.status = 'error';
+            currentItem.errorMessage = 'Неподдерживаемый тип файла';
+        }
+    } catch (e) {
+        console.error('Ошибка в handlCalculate:', e);
+    } finally {
+        isCalculating.value = false;
+    }
 }
+
+const checkIfReady = ({ id, animal_id }) => {
+    const file = fileItems.value.find(f => f.id === id);
+    if (file) {
+        file.animal_id = animal_id?.trim() || '';
+    }
+};
+
+const canCalculate = computed(() => {
+    return fileItems.value.length > 0 &&
+        fileItems.value.every(item => {
+            if (item.variant === 'image') {
+                return item.animal_id && item.animal_id.trim() !== '';
+            }
+            if (item.variant === 'archive') {
+                return true;
+            }
+            return false;
+        });
+});
+
+// удаление загруженнго файла
+const removeFile = (fileId) =>  {
+    const index = fileItems.value.findIndex(item => item.id === fileId)
+    if (index !== -1) {
+        const fileToRemove = fileItems.value[index]
+        if (fileToRemove.abortController) {
+            fileToRemove.abortController.abort()
+        }
+        fileItems.value.splice(index, 1)
+    }
+}
+
 
 // Логика клика на конопку скачивания
 async function handleExport() {
@@ -137,6 +416,10 @@ async function handleExport() {
     } else if (selectedExportTab.value === 'excel') {
         downloadExcel() // Функция скачивания (заглушки для API)
     }
+}
+
+const handleLogout = () => {
+    // логика выхода
 }
 </script>
 

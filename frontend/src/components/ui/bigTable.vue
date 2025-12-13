@@ -14,101 +14,84 @@
     <!-- Таблица -->
     <table v-else class="data-table">
       <thead>
-      <tr>
-        <!-- Чекбокс "Выбрать все" -->
-        <th class="checkbox-th">
-          <div class="th-block">
-            Выбрать
-            <div class="custom-checkbox" @click="toggleSelectAll">
-              <CheckboxChecked v-if="allPageSelected" />
-              <CheckboxUnchecked v-else />
+        <tr>
+          <!-- Чекбокс "Выбрать все" -->
+          <th class="checkbox-th">
+            <div class="th-block">
+              Выбрать
+              <div class="custom-checkbox" @click="toggleSelectAll">
+                <CheckboxChecked v-if="allPageSelected" />
+                <CheckboxUnchecked v-else />
+              </div>
             </div>
-          </div>
-        </th>
+          </th>
 
-        <!-- Заголовки из head -->
-        <th
-            v-for="field in head"
-            :key="field.key"
-            class="sortable"
-            :class="{ 'sorted': sort.key === field.key }"
-            @click="field.sortable && toggleSort(field.key)"
-        >
-          <div class="th-block">
-            {{ field.title }}
-            <SortIcon
-                v-if="field.sortable"
-                class="sort-icon"
-                :class="{
-                  'active-asc': sort.key === field.key && sort.order === 'asc',
-                  'active-desc': sort.key === field.key && sort.order === 'desc',
-                }"
-            />
-          </div>
-        </th>
-      </tr>
+          <!-- Заголовки из head -->
+          <th v-for="field in head" :key="field.key" class="sortable" :class="{ 'sorted': sort.key === field.key }"
+            @click="field.sortable && toggleSort(field.key)">
+            <div class="th-block">
+              {{ field.title }}
+              <SortIcon v-if="field.sortable" class="sort-icon" :class="{
+                'active-asc': sort.key === field.key && sort.order === 'asc',
+                'active-desc': sort.key === field.key && sort.order === 'desc',
+              }" />
+            </div>
+          </th>
+        </tr>
       </thead>
 
       <tbody>
-      <tr
-          v-for="item in displayedItems"
-          :key="item.id"
-          :class="{ 'selected-row': selectedItems.includes(item.id) }"
-      >
-        <!-- Чекбокс строки -->
-        <td class="checkbox-td">
-          <div class="custom-checkbox" @click="toggleRow(item.id)">
-            <CheckboxChecked v-if="selectedItems.includes(item.id)" />
-            <CheckboxUnchecked v-else />
-          </div>
-        </td>
-
-        <!-- Данные и действия -->
-        <td v-for="field in head" :key="field.key">
-          <!-- Фото -->
-          <img
-              v-if="field.key === 'photo'"
-              :src="item.image_url"
-              :alt="`Фото ${item.animal_id}`"
-              style="width: 40px; height: 40px; object-fit: cover; border-radius: 4px;"
-          />
-
-          <!-- Дата -->
-          <template v-else-if="field.key === 'date'">
-            {{ formatDate(item.created_at) }}
-          </template>
-
-          <!-- Время -->
-          <template v-else-if="field.key === 'time'">
-            {{ formatTime(item.created_at) }}
-          </template>
-
-          <!-- Вес -->
-          <template v-else-if="field.key === 'weight'">
-            {{ item.weight }} кг
-          </template>
-
-          <!-- Действия -->
-          <template v-else-if="field.key === 'action'">
-            <div class="actions-td">
-              <button class="action-btn info" title="Скачать PDF" @click="downloadPDF(item)">
-                <Pdf_M />
-              </button>
-              <button class="action-btn excel" title="Скачать Excel" @click="downloadExcel(item)">
-                <File_M />
-              </button>
-              <button class="action-btn delete" title="Удалить запись" @click="deleteRecord(item.id)">
-                <TrashIcon />
-              </button>
+        <tr v-for="item in displayedItems" :key="item.id" :class="{ 'selected-row': selectedItems.includes(item.id) }">
+          <!-- Чекбокс строки -->
+          <td class="checkbox-td">
+            <div class="custom-checkbox" @click="toggleRow(item.id)">
+              <CheckboxChecked v-if="selectedItems.includes(item.id)" />
+              <CheckboxUnchecked v-else />
             </div>
-          </template>
+          </td>
 
-          <!-- Остальные поля -->
-          <template v-else>
-            {{ item[field.key] }}
-          </template>
-        </td>
-      </tr>
+          <!-- Данные и действия -->
+          <td v-for="field in head" :key="field.key">
+            <!-- Фото -->
+            <img v-if="field.key === 'photo'" :src="item.image_url" :alt="`Фото ${item.animal_id}`"
+              style="width: 40px; height: 40px; object-fit: cover; border-radius: 4px;" />
+
+            <!-- Дата -->
+            <template v-else-if="field.key === 'date'">
+              {{ formatDate(item.created_at) }}
+            </template>
+
+            <!-- Время -->
+            <template v-else-if="field.key === 'time'">
+              {{ formatTime(item.created_at) }}
+            </template>
+
+            <!-- Вес -->
+            <template v-else-if="field.key === 'weight'">
+              {{ item.weight }} кг
+            </template>
+
+            <!-- Действия -->
+            <template v-else-if="field.key === 'action'">
+              <div class="actions-td">
+                <button class="action-btn info" title="Скачать PDF" @click="downloadPDF(item)">
+                  <Pdf_M />
+                </button>
+                <button class="action-btn excel" title="Скачать Excel" @click="downloadExcel(item)">
+                  <File_M />
+                </button>
+                <button class="action-btn delete" title="Удалить запись" @click="deleteRecord(item.id)">
+                  <TrashIcon />
+                </button>
+              </div>
+            </template>
+
+            <!-- Остальные поля -->
+            <template v-else>
+              {{ item[field.key] }}
+            </template>
+          </td>
+        </tr>
       </tbody>
     </table>
 
@@ -126,7 +109,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, onMounted, watch } from 'vue';
 import { useCowsStore } from '../../stores/cows.js';
 import { jsPDF } from 'jspdf';
 import * as XLSX from 'xlsx';
@@ -147,13 +130,21 @@ const props = defineProps({
     type: String,
     default: 'weighings', // 'weighings' | 'operation'
   },
+  filterId: {
+    type: [String, Number],
+    default: ''
+  },
+  filterDateRange: {
+    type: Object,
+    default: () => ({ start: null, end: null })
+  },
 });
 
 // --- Заголовки ---
 const head = computed(() => {
   if (props.type === 'operation') {
     return [
-      { title: 'ID', key: 'id', sortable: true },
+      { title: 'Номер бирки', key: 'animal_id', sortable: true },
       { title: 'Количество', key: 'count', sortable: true },
       { title: 'Ср. вес', key: 'average_weight', sortable: true },
       { title: 'Общий вес', key: 'total_weight', sortable: true },
@@ -165,7 +156,7 @@ const head = computed(() => {
 
   return [
     { title: 'Фото', key: 'photo', sortable: false },
-    { title: 'ID', key: 'id', sortable: true },
+    { title: 'Номер бирки', key: 'animal_id', sortable: true },
     { title: 'Дата', key: 'date', sortable: true },
     { title: 'Время', key: 'time', sortable: true },
     { title: 'Вес/кг', key: 'weight', sortable: true },
@@ -195,13 +186,37 @@ const toggleSort = (key) => {
 
 // --- Загрузка данных ---
 const loadData = async () => {
-  await cowsStore.fetchHistory({
+  const params = {
     page: currentPage.value,
     limit: limit.value,
     sort: sort.value.key,
     order: sort.value.order.toUpperCase(),
-  });
+  };
+
+  if (
+    props.filterId !== null &&
+    props.filterId !== undefined &&
+    props.filterId.toString().trim() !== ''
+  ) {
+    params.animal_id = String(props.filterId).trim();
+  }
+
+  if (props.filterDateRange?.start) {
+    params.start_date = new Date(props.filterDateRange.start)
+      .toISOString()
+      .split('T')[0];
+  }
+
+  if (props.filterDateRange?.end) {
+    params.end_date = new Date(props.filterDateRange.end)
+      .toISOString()
+      .split('T')[0];
+  }
+
+  console.log('FETCH HISTORY PARAMS:', params);
+  await cowsStore.fetchHistory(params);
 };
+
 
 onMounted(() => {
   loadData();
@@ -251,8 +266,8 @@ const prevPage = () => {
 const selectedItems = ref([]);
 
 const allPageSelected = computed(() =>
-    displayedItems.value.length > 0 &&
-    displayedItems.value.every((i) => selectedItems.value.includes(i.id))
+  displayedItems.value.length > 0 &&
+  displayedItems.value.every((i) => selectedItems.value.includes(i.id))
 );
 
 const toggleRow = (id) => {
@@ -320,6 +335,16 @@ const deleteRecord = async (id) => {
     alert('Ошибка: ' + res.error);
   }
 };
+
+watch(
+  () => [props.filterId, props.filterDateRange],
+  () => {
+    currentPage.value = 1; // сбрасываем страницу
+    loadData();
+  },
+  { deep: true }
+)
+
 </script>
 
 <style scoped lang="scss">
@@ -344,6 +369,7 @@ const deleteRecord = async (id) => {
 
   &.delete {
     color: #d32f2f;
+
     &:hover {
       background-color: #ffebee;
     }
@@ -351,6 +377,7 @@ const deleteRecord = async (id) => {
 
   &.info {
     color: #1976d2;
+
     &:hover {
       background-color: #e3f2fd;
     }
@@ -358,6 +385,7 @@ const deleteRecord = async (id) => {
 
   &.excel {
     color: #2e7d32;
+
     &:hover {
       background-color: #e8f5e9;
     }

@@ -29,61 +29,55 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
-import { useCowsStore } from '../../stores/cows.js';
+import { ref, computed  } from 'vue';
 import AppButton from '../../components/ui/button.vue';
 
-const cowsStore = useCowsStore();
-const fileInput = ref(null);
-const isDragOver = ref(false);
+// Эмит событий в родитель
+const emit = defineEmits(['file-added']);
 
-// === Props ===
 const props = defineProps({
   variant: {
     type: String,
-    default: 'image', // 'image' или 'archive'
-  },
+    default: 'image' // 'image' или 'archive'
+  }
 });
 
-// === Конфигурация по варианту ===
+const fileInput = ref(null);
+const isDragOver = ref(false);
+
 const config = {
   image: {
     accept: 'image/jpeg, image/png',
     multiple: true,
     title: 'Перетащите фото или нажмите для выбора',
     hint: 'Поддерживаемые форматы: JPG, PNG',
-    buttonText: 'Загрузить фото',
+    buttonText: 'Загрузить фото'
   },
   archive: {
     accept: '.zip',
     multiple: false,
     title: 'Перетащите ZIP-архив или нажмите для выбора',
     hint: 'Поддерживаемый формат: ZIP',
-    buttonText: 'Загрузить архив',
-  },
+    buttonText: 'Загрузить архив'
+  }
 };
 
-const { accept, multiple, title, hint, buttonText } = config[props.variant];
+// реактивные вычисляемые значения для шаблона
+const variantConfig = computed(() => config[props.variant] || config.image);
+const accept = computed(() => variantConfig.value.accept);
+const multiple = computed(() => variantConfig.value.multiple);
+const title = computed(() => variantConfig.value.title);
+const hint = computed(() => variantConfig.value.hint);
+const buttonText = computed(() => variantConfig.value.buttonText);
 
-// === События перетаскивания ===
-const onDragEnter = (e) => {
-  e.preventDefault();
-  isDragOver.value = true;
-};
-
-const onDragOver = (e) => {
-  e.preventDefault();
-  isDragOver.value = true;
-};
-
-const onDragLeave = () => {
-  isDragOver.value = false;
-};
-
+// drag events
+const onDragEnter = (e) => { e.preventDefault(); isDragOver.value = true; };
+const onDragOver = (e) => { e.preventDefault(); isDragOver.value = true; };
+const onDragLeave = () => { isDragOver.value = false; };
 const onDrop = (e) => {
   e.preventDefault();
   isDragOver.value = false;
-  const files = Array.from(e.dataTransfer.files);
+  const files = Array.from(e.dataTransfer?.files || []);
   handleFiles(files);
 };
 
@@ -93,49 +87,44 @@ const selectFile = () => {
 };
 
 const onFileChange = (e) => {
-  const files = Array.from(e.target.files);
+  const files = Array.from(e.target?.files || []);
   handleFiles(files);
 };
 
-// === Обработка файлов ===
-const handleFiles = async (files) => {
-  if (!files.length) return;
+// просто эмитим файлы вверх, родитель сам делает загрузку
+const handleFiles = (files) => {
+  if (!files?.length) return;
 
-  if (props.variant === 'image') {
-    const validFiles = files.filter(f => ['image/jpeg', 'image/png', 'image/jpg'].includes(f.type));
-    if (validFiles.length !== files.length) {
-      alert('Недопустимый формат. Разрешены только JPG и PNG.');
-      return;
-    }
+  const now = new Date();
 
-    for (const file of validFiles) {
-      const result = await cowsStore.uploadImage(file, 'auto');
-      if (result.success) {
-        console.log('[✅] Фото успешно загружено:', result.data);
-      } else {
-        alert(`Ошибка загрузки фото ${file.name}: ${result.error}`);
-      }
-    }
-  }
+  const formatDateShort = (d) => {
+    const day = String(d.getDate()).padStart(2, '0');
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const year = String(d.getFullYear()).slice(2);
+    return `${day}.${month}.${year}`;
+  };
 
-  if (props.variant === 'archive') {
-    const file = files[0];
-    if (!file.name.toLowerCase().endsWith('.zip')) {
-      alert('Разрешён только ZIP-архив');
-      return;
-    }
+  const formatTimeShort = (d) => {
+    return d.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
+  };
 
-    const result = await cowsStore.uploadArchive(file);
-    if (result.success) {
-      console.log('[✅] Архив успешно загружен:', result.data);
-      alert(`Архив "${file.name}" загружен: ${result.data.processed_images} файлов обработано`);
-    } else {
-      alert(`Ошибка загрузки архива: ${result.error}`);
-    }
-  }
+  const enrichedFiles = files.map(file => ({
+    id: crypto.randomUUID(),
+    name: file.name,
+    size: file.size,
+    variant: props.variant,
+    status: 'pending',
+    progress: 0,
+    date: formatDateShort(now),
+    time: formatTimeShort(now),
+    created_at: now.toISOString(),
+  }));
+
+  // Эмиттим: метаданные + сами File-ы отдельно
+  emit('file-added', enrichedFiles, Array.from(files), props.variant);
 
   // Сброс input
-  fileInput.value.value = '';
+  if (fileInput.value) fileInput.value.value = '';
 };
 </script>
 

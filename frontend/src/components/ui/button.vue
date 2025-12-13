@@ -17,6 +17,11 @@
         <span>Экспорт</span>
         <DownloadIcon class="btn-icon" />
       </template>
+
+      <template v-else-if="variant === 'reset'">
+        <span>Сбросить</span>
+        <CloseIcon class="btn-icon" />
+      </template>
     </template>
   </button>
 </template>
@@ -25,6 +30,7 @@
 import Loading from '../../assets/icons/main/Loading.vue';
 import UploadIcon from '../../assets/icons/main/Download.vue';
 import DownloadIcon from '../../assets/icons/main/Download.vue';
+import CloseIcon from '../../assets/icons/main/Close.vue';
 
 const props = defineProps({
   loading: { type: Boolean, default: false },

@@ -23,9 +23,15 @@
     </div>
 
     <!-- Компонент выбора даты -->
-    <DatePicker v-if="showDatePicker && type === 'daterange'" v-model="dateRange" is-range
-      :model-config="{ type: 'string', mask: 'YYYY-MM-DD' }" @update:modelValue="onDateRangeChange"
-      @close="showDatePicker = false" class="date-picker-popup" :teleport="true" />
+    <DatePicker 
+      v-if="showDatePicker && type === 'daterange'"
+      v-model="safeDateRange"
+      is-range
+      :model-config="{ type: 'string', mask: 'YYYY-MM-DD' }"
+      @close="showDatePicker = false"
+      class="date-picker-popup" 
+      :teleport="true" 
+    />
 
     <span v-if="error" class="error-message">{{ error }}</span>
   </div>
@@ -99,6 +105,16 @@ watch(() => props.modelValue, (newValue) => {
     dateRange.value = { start: newValue[0], end: newValue[1] }
   }
 }, { immediate: true })
+
+
+//  Защита от undefined/null
+const safeDateRange = computed({
+  get: () => dateRange.value || { start: null, end: null },
+  set: (val) => {
+    dateRange.value = val;
+    emit('update:modelValue', val);
+  }
+});
 </script>
 
 <style scoped lang="scss">

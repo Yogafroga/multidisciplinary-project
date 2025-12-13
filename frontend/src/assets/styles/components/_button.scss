@@ -59,7 +59,8 @@
 }
 
 /* Кнопка экспорта */
-.app-button.download {
+.app-button.download,
+.app-button.reset {
   column-gap: 63px;
   width: fit-content;
   padding: $spacing-sm;
@@ -71,12 +72,14 @@
 }
 
 .app-button.upload:hover,
-.app-button.download:hover {
+.app-button.download:hover,
+.app-button.reset:hover {
   background-color: color.scale($color-background-1, $alpha: -25%);
 }
 
 .app-button.upload:active,
-.app-button.download:active {
+.app-button.download:active,
+.app-button.reset:active {
   background-color: $color-background-1;
   color: $text-color-primary;
 }

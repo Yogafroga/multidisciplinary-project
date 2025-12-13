@@ -1,5 +1,5 @@
 <template>
-    <div class="file-item">
+    <div class="file-item" :class="{ 'file-item--error': isError, 'file-item--partial': isPartial }">
         <div class="file-icon">
             <component :is="fileIcon" />
         </div>
@@ -8,40 +8,43 @@
             <div class="file-name text-h4">{{ file.name }}</div>
             <div class="file-info-botton text-h5">
                 <div class="file-progress">
-                    <span class="text-h5">{{ formattedLoaded }}</span>
-                    <span> / </span>
-                    <span class="text-h5">{{ formattedTotal }}</span>
+                    <span>{{ formattedProgress }}</span>
+                    <span class="text-muted"> / {{ formattedTotal }}</span>
                 </div>
 
 
                 <Point />
+                <div class="file-status">
+                    <!-- Вариан "Загрузка" -->
+                    <template v-if="isUploading">
+                        <LoadingIcon class="loading-spinner" />
+                        <span>Загрузка{{ progressPercent ? ' ' + progressPercent + '%' : '' }}...</span>
+                    </template>
 
-                <!-- Вариан "Загрузка" -->
-                <template v-if="isLoading">
-                    <LoadingIcon class="loading-spinner" />
-                    <span>Загрузка...</span>
-                </template>
+                    <!-- Вариант "Завершено" -->
+                    <template v-if="isSuccess">
+                        <DoneIcon class="done-icon" />
+                        <span>Завершено</span>
+                    </template>
 
-                <!-- Вариант "Завершено" -->
-                <template v-if="isDone">
-                    <DoneIcon class="done-icon" />
-                    <span>Завершено</span>
-                </template>
+                    <template v-if="isPartial">
+                        <span class="text-warning">
+                            {{ file.result.processed_images }}/{{ file.result.total_images }} обработано
+                        </span>
+                    </template>
+
+                    <template v-if="isError">
+                        <span class="text-error">Ошибка</span>
+                    </template>
+                </div>
             </div>
         </div>
-        <div class="btn">
-            <template v-if="isLoading">
-                <button class="delete-btn" @click="$emit('delete')">
-                    <CloseIcon />
-                </button>
-            </template>
+        <button class="delete-btn" @click="$emit('remove', file.id)" :disabled="isUploading"
+            :title="isUploading ? 'Нельзя удалить во время загрузки' : 'Удалить файл'">
+            <CloseIcon v-if="isUploading" />
+            <DeleteIcon v-else />
+        </button>
 
-            <template v-if="isDone">
-                <button class="delete-btn" @click="$emit('delete')">
-                    <DeleteIcon />
-                </button>
-            </template>
-        </div>
     </div>
 </template>
 
@@ -68,37 +71,46 @@ const props = defineProps({
     }
 });
 
-function getIcon(name) {
-    const ext = name.split('.').pop().toLowerCase();
-    switch (ext) {
-        case 'png':
-            return Png_L;
-        case 'jpg':
-            return Jpg_L;
-        case 'pdf':
-            return Pdf_L;
-        case 'raw':
-            return Raw_L;
-        case 'tiff':
-            return TIFF_L;
-        default:
-            return File_L;
+defineEmits(['remove'])
+
+// Иконка по расширению
+const fileIcon = computed(() => {
+    const ext = props.file.name.split('.').pop().toLowerCase()
+    const map = {
+        jpg: Jpg_L,
+        png: Png_L,
+        zip: File_L,
+        default: File_L,
     }
+    return map[ext] || map.default
+})
+
+// Формотирование размеров
+const formatBytes = (bytes) => {
+    if (!bytes) return '0 MB'
+    const mb = bytes / 1024 / 1024
+    return mb < 10 ? mb.toFixed(2) + ' MB ' : mb.toFixed(1) + ' MB'
 }
 
-const fileIcon = computed(() => {
-    return getIcon(props.file.name);
-});
+const formattedTotal = computed(() => formatBytes(props.file.size || props.file.total))
+const formattedLoaded = computed(() => formatBytes(props.file.loaded || 0))
 
-function formatMb(bytes) {
-    return (bytes / 1024 / 1024).toFixed(2) + ' MB'; //Если данные будут приходить в байтах
-};
+const progressPercent = computed(() => {
+    if (!props.file.size) return 0
+    return Math.min(100, Math.round((props.file.loaded / props.file.size) * 100))
+})
 
-const formattedLoaded = computed(() => formatMb(props.file.loaded))
-const formattedTotal = computed(() => formatMb(props.file.total))
+const formattedProgress = computed(() => {
+    if (progressPercent.value === 0) return 'Ожидание...'
+    return `${formattedLoaded.value} (${progressPercent.value}%)`
+})
 
-const isDone = computed(() => props.file.loaded >= props.file.total)
-const isLoading = computed(() => !isDone.value)
+// Статусы
+const isUploading = computed(() => props.file.status === 'uploading')
+const isSuccess = computed(() => props.file.status === 'success')
+const isPartial = computed(() => props.file.status === 'partial')
+const isError = computed(() => props.file.status === 'error')
+
 </script>
 
 <style scoped lang="scss">
