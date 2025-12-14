@@ -6,6 +6,7 @@
     overflow: hidden;
     background: transparent;
     max-width: 1360px;
+    margin: auto;
 }
 
 .data-table {
@@ -103,4 +104,35 @@
 .icon-btn:disabled {
     opacity: 0.4;
     cursor: not-allowed;
+}
+
+.action-btn {
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 4px;
+    transition: background-color 0.2s;
+
+    &.delete {
+        color: #d32f2f;
+
+        &:hover {
+            background-color: #ffebee;
+        }
+    }
+
+    &.info {
+        color: #1976d2;
+
+        &:hover {
+            background-color: #e3f2fd;
+        }
+    }
+
+    &.excel {
+        color: #2e7d32;
+
+        &:hover {
+            background-color: #e8f5e9;
+        }
+    }
 }

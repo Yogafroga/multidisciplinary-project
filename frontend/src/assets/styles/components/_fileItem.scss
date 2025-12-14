@@ -4,16 +4,23 @@
 
 .file-item {
     display: flex;
-    justify-content: center;
+    justify-content: space-between;
     align-items: center;
-    column-gap: $spacing-sm;
+    flex-direction: row;
 
-    width: fit-content;
+    width: 500px;
     height: auto;
     padding: calc($spacing-xs * 3) calc($spacing-xs * 3) calc($spacing-xs * 3) calc($spacing-xs * 4);
     border-radius: 16px;
     
     background-color: $color-background-2;
+}
+
+.file-data-content {
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    column-gap: calc($spacing-sm * 3);
 }
 
 .file-info {
@@ -29,7 +36,7 @@
 
 .btn {
     margin-left: 95px;
-    ;
+    
 }
 
 .delete-btn {

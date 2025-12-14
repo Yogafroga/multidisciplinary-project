@@ -349,46 +349,4 @@ watch(
 
 <style scoped lang="scss">
 @use '../../assets/styles/components/bigTable';
-
-.actions-td {
-  display: flex;
-  gap: 8px;
-  align-items: center;
-}
-
-.action-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: none;
-  background: none;
-  cursor: pointer;
-  padding: 4px;
-  border-radius: 4px;
-  transition: background-color 0.2s;
-
-  &.delete {
-    color: #d32f2f;
-
-    &:hover {
-      background-color: #ffebee;
-    }
-  }
-
-  &.info {
-    color: #1976d2;
-
-    &:hover {
-      background-color: #e3f2fd;
-    }
-  }
-
-  &.excel {
-    color: #2e7d32;
-
-    &:hover {
-      background-color: #e8f5e9;
-    }
-  }
-}
 </style>

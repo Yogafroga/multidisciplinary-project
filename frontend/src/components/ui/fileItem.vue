@@ -1,44 +1,49 @@
 <template>
     <div class="file-item" :class="{ 'file-item--error': isError, 'file-item--partial': isPartial }">
-        <div class="file-icon">
-            <component :is="fileIcon" />
-        </div>
+        <div class="file-data-content">
+            <div class="file-icon">
+                <component :is="fileIcon" />
+            </div>
 
-        <div class="file-info">
-            <div class="file-name text-h4">{{ file.name }}</div>
-            <div class="file-info-botton text-h5">
-                <div class="file-progress">
-                    <span>{{ formattedProgress }}</span>
-                    <span class="text-muted"> / {{ formattedTotal }}</span>
-                </div>
+            <div class="file-info">
+                <div class="file-name text-h4">{{ file.name }}</div>
+                <div class="file-info-botton text-h5">
+                    <div class="file-progress">
+                        <span>{{ formattedProgress }}</span>
+                        <span class="text-muted"> / {{ formattedTotal }}</span>
+                    </div>
 
 
-                <Point />
-                <div class="file-status">
-                    <!-- Вариан "Загрузка" -->
-                    <template v-if="isUploading">
-                        <LoadingIcon class="loading-spinner" />
-                        <span>Загрузка{{ progressPercent ? ' ' + progressPercent + '%' : '' }}...</span>
-                    </template>
+                    <Point />
+                    <div class="file-status">
+                        <!-- Вариан "Загрузка" -->
+                        <template v-if="isUploading">
+                            <LoadingIcon class="loading-spinner" />
+                            <span>Загрузка{{ progressPercent ? ' ' + progressPercent + '%' : '' }}...</span>
+                        </template>
 
-                    <!-- Вариант "Завершено" -->
-                    <template v-if="isSuccess">
-                        <DoneIcon class="done-icon" />
-                        <span>Завершено</span>
-                    </template>
+                        <!-- Вариант "Завершено" -->
+                        <template v-if="isSuccess">
+                            <DoneIcon class="done-icon" />
+                            <span>Завершено</span>
+                        </template>
 
-                    <template v-if="isPartial">
-                        <span class="text-warning">
-                            {{ file.result.processed_images }}/{{ file.result.total_images }} обработано
-                        </span>
-                    </template>
+                        <template v-if="isPartial">
+                            <span class="text-warning">
+                                {{ file.result.processed_images }}/{{ file.result.total_images }} обработано
+                            </span>
+                        </template>
 
-                    <template v-if="isError">
-                        <span class="text-error">Ошибка</span>
-                    </template>
+                        <template v-if="isError">
+                            <span class="text-error">Ошибка</span>
+                        </template>
+
+                        <template v-else><span class="text-error"> Ожидание...</span></template>
+                    </div>
                 </div>
             </div>
         </div>
+
         <button class="delete-btn" @click="$emit('remove', file.id)" :disabled="isUploading"
             :title="isUploading ? 'Нельзя удалить во время загрузки' : 'Удалить файл'">
             <CloseIcon v-if="isUploading" />
@@ -101,7 +106,7 @@ const progressPercent = computed(() => {
 })
 
 const formattedProgress = computed(() => {
-    if (progressPercent.value === 0) return 'Ожидание...'
+    if (progressPercent.value === 0) return '0'
     return `${formattedLoaded.value} (${progressPercent.value}%)`
 })
 
