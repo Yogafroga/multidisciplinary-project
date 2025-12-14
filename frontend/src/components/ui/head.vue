@@ -25,8 +25,8 @@
             </ul>
         </nav>
         <div class="right-section">
-            <span class="email">{{ email }}</span>
-            <button class="logout-btn" @click="$emit('logout')" aria-label="Выйти">
+            <span class="email">{{ userName }}</span>
+            <button class="logout-btn" @click="handleLogout" aria-label="Выйти">
                 <Logout class="head-icon" />
             </button>
         </div>
@@ -34,10 +34,13 @@
 </template>
 
 <script setup>
+import { computed } from 'vue';
 import LogoBig from '../../assets/icons/logo/Logo-big.vue';
 import DownloadIcon from '../../assets/icons/main/Download.vue';
 import HistoryIcon from '../../assets/icons/main/History.vue';
 import Logout from '../../assets/icons/main/Logout.vue';
+import { useAuthStore } from '../../stores/auth';
+import { useRouter } from 'vue-router';
 
 const props = defineProps({
     email: String,
@@ -48,7 +51,14 @@ const props = defineProps({
     }
 })
 
-defineEmits(['change-tab', 'logout'])
+const auth = useAuthStore()
+const router = useRouter()
+const userName = computed(() => auth.user?.username || '')
+
+const handleLogout = () => {
+    auth.logout()
+    router.push('/login')
+}
 </script>
 
 <style scoped lang="scss">

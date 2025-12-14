@@ -27,6 +27,10 @@ export const useAuthStore = defineStore('auth', () => {
             token.value = access_token;
             localStorage.setItem('access_token', access_token);
 
+            user.value = {
+                username
+            }
+
             return { success: true };
         } catch (error) {
             console.error('[Auth] Ошибка входа:', error.response?.data || error.message);
