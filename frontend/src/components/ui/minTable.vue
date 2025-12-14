@@ -130,9 +130,9 @@ const displayedItems = computed(() => {
       animal_id: item.animal_id || '',
       // Дата и время из uploadTime (клиентское) или из result.created_at (серверное)
       date: item.uploadTime ? formatDate(item.uploadTime) : 
-            (item.result?.created_at ? formatDate(item.result.created_at) : '—'),
+            (item.result?.created_at ? formatDate(item.result.created_at) : formatDate(new Date)),
       time: item.uploadTime ? formatTime(item.uploadTime) : 
-            (item.result?.created_at ? formatTime(item.result.created_at) : '—'),
+            (item.result?.created_at ? formatTime(item.result.created_at) : formatDate(new Date)),
       weight: item.weight ?? item.result?.weight ?? '—',
     }));
   }

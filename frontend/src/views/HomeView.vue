@@ -11,7 +11,7 @@
                 <!-- Вкладка для загрузки данных -->
                 <div v-if="currentTab === 'upload'" class="home__loading">
                     <div class="home__upload">
-                        <TabBar variant="animals" @update:selectedTab="selectedAnimalTab = $event" />
+                        <TabBar variant="animals" @update:selectedTab="onAnimalTabChange" />
 
                         <div v-if="selectedAnimalTab === 'one'">
                             <DragDropUpload class="home__upload-image-drop" variant="image" @file-added="onFileAdded" />
@@ -156,6 +156,12 @@ const isDataReady = computed(() => {
     }
 })
 
+// Смена варианта таблиц и отчизение старых данных
+const onAnimalTabChange = (tab) => {
+    selectedAnimalTab.value = tab
+    fileItems.value = []
+}
+
 // Если сервер не дает id при загрузке архива
 function extractIdFromFilename(filename) {
     if (!filename) return '';
@@ -169,7 +175,7 @@ function extractIdFromFilename(filename) {
     return name;
 }
 
-// функцию для извлечения файлов из ZIP
+// функция для извлечения файлов из ZIP — возвращаем blob + objectURL
 async function extractArchiveFiles(zipFile) {
     const reader = new FileReader();
 
@@ -178,7 +184,6 @@ async function extractArchiveFiles(zipFile) {
             try {
                 const zip = await JSZip.loadAsync(e.target.result);
                 const extractedFiles = [];
-
                 const promises = [];
 
                 zip.forEach((relativePath, file) => {
@@ -186,10 +191,13 @@ async function extractArchiveFiles(zipFile) {
 
                     promises.push(
                         file.async('blob').then(blob => {
+                            const url = URL.createObjectURL(blob); // object URL для быстрого превью
                             extractedFiles.push({
                                 name: relativePath,
                                 size: blob.size,
+                                type: blob.type || guessTypeByName(relativePath),
                                 blob,
+                                url,
                                 addedTime: new Date()
                             });
                         })
@@ -208,40 +216,61 @@ async function extractArchiveFiles(zipFile) {
     });
 }
 
+function guessTypeByName(name) {
+    const ext = (name.split('.').pop() || '').toLowerCase();
+    if (['jpg', 'jpeg'].includes(ext)) return 'image/jpeg';
+    if (['png'].includes(ext)) return 'image/png';
+    return 'application/octet-stream';
+}
+
+
 // Получение данных файла
 const onFileAdded = (metaItems, rawFiles, variant) => {
     if (!rawFiles.length) return;
 
     rawFiles.forEach(async (file, i) => {
         const meta = metaItems[i];
-        const fileItem = {
-            id: crypto.randomUUID(),
-            ...meta,
-            file,
-            loaded: 0,
-            progress: 0,
-            status: 'pending',
-            result: null,
-            animal_id: meta.animal_id || '',
-            weight: null,
-            uploadTime: null
-        };
+
+        // Если это изображение
+        if (variant === 'image') {
+            fileItems.value.push({
+                id: crypto.randomUUID(),
+                name: file.name,
+                size: file.size,
+                file,
+                loaded: 0,
+                progress: 0,
+                status: 'pending',
+                result: null,
+                animal_id: meta.animal_id || '',
+                uploadTime: null,
+                variant: 'image',
+            });
+        }
 
         // Если это архив — извлекаем файлы заранее
         if (variant === 'archive') {
-            fileItem.status = 'extracting';
             try {
-                const extractedFiles = await extractArchiveFiles(file);
-                fileItem.extractedFiles = extractedFiles;
-                fileItem.status = 'pending';
-            } catch (error) {
-                fileItem.status = 'error';
-                fileItem.errorMessage = 'Ошибка извлечения архива';
-                console.error('Archive extraction failed:', error);
+                const extractedFiles = await extractArchiveFiles(file); // функция с JSZip
+                extractedFiles.forEach(ef => {
+                    fileItems.value.push({
+                        id: crypto.randomUUID(),
+                        name: ef.name,
+                        size: ef.size,
+                        file: ef.blob,
+                        loaded: ef.size,
+                        progress: 100,
+                        status: 'pending',
+                        result: null,
+                        animal_id: extractIdFromFilename(ef.name),
+                        uploadTime: new Date(),
+                        variant: 'image',
+                    });
+                });
+            } catch (err) {
+                console.error('Ошибка извлечения архива:', err);
             }
         }
-
-        fileItems.value.push(fileItem);
     });
 };
 
@@ -395,7 +424,7 @@ const canCalculate = computed(() => {
 });
 
 // удаление загруженнго файла
-const removeFile = (fileId) =>  {
+const removeFile = (fileId) => {
     const index = fileItems.value.findIndex(item => item.id === fileId)
     if (index !== -1) {
         const fileToRemove = fileItems.value[index]
