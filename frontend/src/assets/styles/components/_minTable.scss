@@ -99,7 +99,28 @@
     display: flex;
     align-items: center;
     gap: 5px;
+
+    overflow-x: auto;
+    scrollbar-gutter: stable;
+    max-width: 100%;
+
+    &::-webkit-scrollbar {
+        height: 8px;
+    }
+
+    &::-webkit-scrollbar-track {
+        background: $border-color;
+    }
+
+    &::-webkit-scrollbar-thumb {
+        background: $color-background-2;
+        border-radius: 4px;
+        border: 1px solid transparent;
+        background-clip: content-box;
+        cursor: pointer;
+    }
 }
+
 
 .cell-text {
     display: inline-block;
@@ -146,7 +167,7 @@
 }
 
 .data-table.default {
-    
+
     thead,
     tbody {
         background: $color-background-2;

@@ -38,13 +38,15 @@
                             <span class="text-error">Ошибка</span>
                         </template>
 
-                        <template v-else><span class="text-error"> Ожидание...</span></template>
+                        <template v-if="isPending">
+                            <span class="text-error"> Ожидание...</span>
+                        </template>
                     </div>
                 </div>
             </div>
         </div>
 
-        <button class="delete-btn" @click="$emit('remove', file.id)" :disabled="isUploading"
+        <button v-if="canRemove" class="delete-btn" @click="$emit('remove', file.id)" :disabled="isUploading"
             :title="isUploading ? 'Нельзя удалить во время загрузки' : 'Удалить файл'">
             <CloseIcon v-if="isUploading" />
             <DeleteIcon v-else />
@@ -110,11 +112,16 @@ const formattedProgress = computed(() => {
     return `${formattedLoaded.value} (${progressPercent.value}%)`
 })
 
+const canRemove = computed(() => {
+    return !props.file.fromArchive
+})
+
 // Статусы
 const isUploading = computed(() => props.file.status === 'uploading')
 const isSuccess = computed(() => props.file.status === 'success')
 const isPartial = computed(() => props.file.status === 'partial')
 const isError = computed(() => props.file.status === 'error')
+const isPending = computed(() => props.file.status === 'pending')
 
 </script>
 

@@ -106,7 +106,7 @@
 
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, nextTick } from 'vue'
 import { useCowsStore } from '../stores/cows'
 import JSZip from 'jszip';
 
@@ -239,7 +239,7 @@ const onFileAdded = (metaItems, rawFiles, variant) => {
                 name: file.name,
                 size: file.size,
                 file,
-                loaded: file.size,
+                loaded: 0,
                 progress: 0,
                 status: 'pending',
                 result: null,
@@ -264,8 +264,8 @@ const onFileAdded = (metaItems, rawFiles, variant) => {
                     name: file.name,
                     size: file.size,
                     file: file,
-                    loaded: file.size,
-                    progress: 100,
+                    loaded: 0,
+                    progress: 0,
                     status: 'pending',
                     result: null,
                     animal_id: '',
@@ -303,15 +303,27 @@ async function handlCalculate() {
                     continue;
                 }
 
-                currentItem.status = 'processing';
+                currentItem.status = 'uploading';
+                currentItem.loaded = 0
+                currentItem.progress = 0
+                currentItem.size = item.file.size
 
-                const result = await cowSore.uploadImage(item.file, item.animal_id);
+                const result = await cowSore.uploadImage(
+                    item.file,
+                    item.animal_id,
+                    (loaded, total) => {
+                        currentItem.loaded = loaded
+                        currentItem.progress = Math.round((loaded / total) * 100)
+                    }
+                )
 
                 if (!result.success) {
                     currentItem.status = 'error';
                     currentItem.errorMessage = result.error || 'Ошибка обработки';
                     continue;
                 }
+
+                currentItem.status = 'processing'
 
                 const fileResult = result.data.files?.[0] || result.data;
 
@@ -320,11 +332,7 @@ async function handlCalculate() {
                 currentItem.weight = Math.round(fileResult.weight) ?? null;
                 currentItem.animal_id = item.animal_id;
                 currentItem.status = 'success';
-
-                // Размер и прогресс
-                currentItem.size = item.file.size;
-                currentItem.loaded = item.file.size;
-                currentItem.progress = 100;
+                currentItem.progress = 100
 
                 currentItem.uploadTime = fileResult.created_at
                     ? new Date(fileResult.created_at)
@@ -335,7 +343,9 @@ async function handlCalculate() {
 
             // --- ZIP-АРХИВ ---
             if (item.variant === 'archive') {
-                currentItem.status = 'uploading-archive';
+                currentItem.loaded = 0
+                currentItem.progress = 0
+                currentItem.status = 'uploading';
 
                 const result = await cowSore.uploadArchive(item.file); // один запрос — весь архив
 
@@ -344,6 +354,10 @@ async function handlCalculate() {
                     currentItem.errorMessage = result.error || 'Ошибка загрузки архива';
                     continue;
                 }
+
+                currentItem.loaded = currentItem.size
+                currentItem.progress= 100
+                currentItem.status = 'processing'
 
                 const details = result.data.details || [];
                 const summary = result.data?.summary;
@@ -364,15 +378,20 @@ async function handlCalculate() {
 
                 // Создаём новые элементы для каждого файла из ответа сервера
                 const newItems = details.map((detail) => {
-                    const extracted = item.extractedFiles.find(ef => ef.name === detail.filename) || {};
+                    const extracted = item.extractedFiles.find(ef => {
+                        if (!ef?.name) return false;
+                        return ef.name.split('/').pop() === detail.filename;
+                    }) || {};
+
 
                     return {
                         id: crypto.randomUUID(),
                         variant: 'image',
+                        fromArchive: true,
                         name: detail.filename || 'unknown.jpg',
-                        size: extracted.size || 0,
+                        size: extracted.size ?? detail.size ?? 0,
                         file: extracted.blob || null, // для превью
-                        loaded: extracted.size || 0,
+                        loaded: extracted.size ?? detail.size ?? 0,
                         progress: 100,
                         status: detail.status === 'success' ? 'success' : 'error',
                         result: detail,

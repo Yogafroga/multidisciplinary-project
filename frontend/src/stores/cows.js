@@ -36,9 +36,9 @@ export const useCowsStore = defineStore('cows', () => {
                     'Content-Type': 'multipart/form-data',
                 },
                 onUploadProgress: (event) => {
-                    if (!event.total) return;
-                    const percent = Math.round((event.loaded * 100) / event.total);
-                    onProgress?.(event.loaded, percent);
+                    if (!event.total) return
+
+                    onProgress?.(event.loaded, event.total)
                 }
             });
 
