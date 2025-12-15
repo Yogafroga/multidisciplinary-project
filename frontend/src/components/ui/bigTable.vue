@@ -52,9 +52,10 @@
 
           <!-- Данные и действия -->
           <td v-for="field in head" :key="field.key">
-            <!-- Фото -->
-            <img v-if="field.key === 'photo'" :src="item.image_url" :alt="`Фото ${item.animal_id}`"
-              style="width: 40px; height: 40px; object-fit: cover; border-radius: 4px;" />
+            <!-- Фото (только название файла) -->
+            <template v-if="field.key === 'photo'">
+              {{ item.image_url ? getFileName(item.image_url) : '—' }}
+            </template>
 
             <!-- Дата -->
             <template v-else-if="field.key === 'date'">
@@ -345,6 +346,10 @@ watch(
   { deep: true }
 )
 
+const getFileName = (url) => {
+  if (!url) return '—';
+  return url.split('/').pop();
+};
 </script>
 
 <style scoped lang="scss">
