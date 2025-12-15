@@ -120,6 +120,18 @@ const currentHeaders = computed(() => {
 });
 
 const displayedItems = computed(() => {
+
+
+  // Для сводной таблицы по группе (cows)
+  if (props.type === 'cows') {
+    const cows = cowsStore.calculatedGroup || {};
+    return [{
+      id: 'summary',
+      count: cows.count ?? '—',
+      averageWeight: cows.averageWeight ?? '—',
+      totalWeight: cows.totalWeight ?? '—',
+    }];
+  }
   const items = props.items || [];
 
   // Для режима "one" или "group" до расчёта/после
@@ -136,18 +148,7 @@ const displayedItems = computed(() => {
       weight: item.weight ?? item.result?.weight ?? '—',
     }));
   }
-
-  // Для сводной таблицы по группе (cows)
-  if (props.type === 'cows') {
-    const cows = cowsStore.calculatedGroup || {};
-    return [{
-      id: 'summary',
-      count: cows.count ?? '—',
-      averageWeight: cows.averageWeight ?? '—',
-      totalWeight: cows.totalWeight ?? '—',
-    }];
-  }
-
+  
   return [];
 });
 

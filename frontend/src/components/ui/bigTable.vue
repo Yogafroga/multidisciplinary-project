@@ -230,7 +230,7 @@ const displayedItems = computed(() => {
     ...item,
     id: item.id,
     animal_id: item.animal_id,
-    weight: item.weight,
+    weight: Math.round(item.weight),
     image_url: item.image_url,
     created_at: item.created_at,
   }));

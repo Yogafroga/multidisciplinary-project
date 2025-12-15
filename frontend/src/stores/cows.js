@@ -14,6 +14,16 @@ export const useCowsStore = defineStore('cows', () => {
         error: null,
     });
 
+    const calculatedGroup = ref(null);
+
+    const setCalculatedGroup = (summary) => {
+        calculatedGroup.value = summary;
+    }
+
+    const clearCalculatedGroup = () => {
+        calculatedGroup.value = null; // ✅ правильно
+    }
+
     // --- Загрузка файлов ---
     const uploadImage = async (file, animal_id, onProgress) => {
         const formData = new FormData();
@@ -116,5 +126,8 @@ export const useCowsStore = defineStore('cows', () => {
         fetchHistory,
         fetchHistoryByAnimalId,
         deleteHistoryRecord,
+        calculatedGroup,
+        setCalculatedGroup,
+        clearCalculatedGroup,
     };
 });

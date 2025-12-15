@@ -160,6 +160,7 @@ const isDataReady = computed(() => {
 const onAnimalTabChange = (tab) => {
     selectedAnimalTab.value = tab
     fileItems.value = []
+    cowSore.clearCalculatedGroup?.();
 }
 
 // Если сервер не дает id при загрузке архива
@@ -238,7 +239,7 @@ const onFileAdded = (metaItems, rawFiles, variant) => {
                 name: file.name,
                 size: file.size,
                 file,
-                loaded: 0,
+                loaded: file.size,
                 progress: 0,
                 status: 'pending',
                 result: null,
@@ -248,24 +249,29 @@ const onFileAdded = (metaItems, rawFiles, variant) => {
             });
         }
 
-        // Если это архив — извлекаем файлы заранее
+        // Если это архив — добавляем ОДИН элемент с типом 'archive' и сохраняем извлечённые файлы для превью
         if (variant === 'archive') {
             try {
-                const extractedFiles = await extractArchiveFiles(file); // функция с JSZip
-                extractedFiles.forEach(ef => {
-                    fileItems.value.push({
-                        id: crypto.randomUUID(),
-                        name: ef.name,
-                        size: ef.size,
-                        file: ef.blob,
-                        loaded: ef.size,
-                        progress: 100,
-                        status: 'pending',
-                        result: null,
-                        animal_id: extractIdFromFilename(ef.name),
-                        uploadTime: new Date(),
-                        variant: 'image',
-                    });
+                const extractedFiles = await extractArchiveFiles(file); // JSZip извлечение для превью
+
+                if (extractedFiles.length === 0) {
+                    console.warn('Архив пустой или не содержит изображений');
+                    return;
+                }
+
+                fileItems.value.push({
+                    id: crypto.randomUUID(),
+                    name: file.name,
+                    size: file.size,
+                    file: file,
+                    loaded: file.size,
+                    progress: 100,
+                    status: 'pending',
+                    result: null,
+                    animal_id: '',
+                    uploadTime: null,
+                    variant: 'archive',
+                    extractedFiles: extractedFiles
                 });
             } catch (err) {
                 console.error('Ошибка извлечения архива:', err);
@@ -311,7 +317,7 @@ async function handlCalculate() {
 
                 // Обновляем текущий элемент
                 currentItem.result = fileResult;
-                currentItem.weight = fileResult.weight ?? null;
+                currentItem.weight = Math.round(fileResult.weight) ?? null;
                 currentItem.animal_id = item.animal_id;
                 currentItem.status = 'success';
 
@@ -329,15 +335,9 @@ async function handlCalculate() {
 
             // --- ZIP-АРХИВ ---
             if (item.variant === 'archive') {
-                if (!currentItem.extractedFiles || !currentItem.extractedFiles.length) {
-                    currentItem.status = 'error';
-                    currentItem.errorMessage = 'Архив не был извлечён или пуст';
-                    continue;
-                }
-
                 currentItem.status = 'uploading-archive';
 
-                const result = await cowSore.uploadArchive(item.file);
+                const result = await cowSore.uploadArchive(item.file); // один запрос — весь архив
 
                 if (!result.success) {
                     currentItem.status = 'error';
@@ -346,6 +346,15 @@ async function handlCalculate() {
                 }
 
                 const details = result.data.details || [];
+                const summary = result.data?.summary;
+
+                if (summary) {
+                    cowSore.setCalculatedGroup({
+                        count: summary.animal_count,
+                        averageWeight: summary.average_weight,
+                        totalWeight: summary.total_weight
+                    });
+                }
 
                 if (!details.length) {
                     currentItem.status = 'error';
@@ -353,48 +362,38 @@ async function handlCalculate() {
                     continue;
                 }
 
-                // Создаём новые элементы для каждого обработанного файла
+                // Создаём новые элементы для каждого файла из ответа сервера
                 const newItems = details.map((detail) => {
-                    // Ищем соответствующий файл из извлечённых
-                    const extractedFile = currentItem.extractedFiles.find(
-                        ef => ef.name === detail.filename
-                    ) || { size: 0 }; // fallback
-
-                    const uploadTime = detail.created_at
-                        ? new Date(detail.created_at)
-                        : new Date();
+                    const extracted = item.extractedFiles.find(ef => ef.name === detail.filename) || {};
 
                     return {
                         id: crypto.randomUUID(),
                         variant: 'image',
-                        name: detail.filename || 'file.jpg',
-                        size: extractedFile.size || 0,
-                        loaded: extractedFile.size || 0,
+                        name: detail.filename || 'unknown.jpg',
+                        size: extracted.size || 0,
+                        file: extracted.blob || null, // для превью
+                        loaded: extracted.size || 0,
                         progress: 100,
                         status: detail.status === 'success' ? 'success' : 'error',
                         result: detail,
+                        weight: Math.round(detail.weight) ?? null,
                         animal_id: detail.animal_id ?? extractIdFromFilename(detail.filename),
-                        weight: detail.weight ?? null,
-                        uploadTime: uploadTime,
-                        file: extractedFile.blob || null,
+                        uploadTime: detail.created_at ? new Date(detail.created_at) : new Date(),
+                        errorMessage: detail.status === 'error' ? detail.error : undefined
                     };
                 });
 
-                // Заменяем архив на список обработанных файлов
+                // Заменяем элемент архива на список обработанных файлов
                 const currentIdx = fileItems.value.findIndex(f => f.id === item.id);
                 if (currentIdx !== -1) {
                     fileItems.value.splice(currentIdx, 1, ...newItems);
                 }
 
-                // Пропускаем вставленные элементы в цикле
+                // Пропускаем добавленные элементы в цикле
                 idx += newItems.length - 1;
-
                 continue;
             }
-
-            // Неизвестный тип
-            currentItem.status = 'error';
-            currentItem.errorMessage = 'Неподдерживаемый тип файла';
+            console.log('ARCHIVE RESPONSE:', result.data);
         }
     } catch (e) {
         console.error('Ошибка в handlCalculate:', e);
