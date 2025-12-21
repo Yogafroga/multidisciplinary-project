@@ -21,5 +21,102 @@ Working hard or hardly working?
 - # schemas
     Папка с Pydantic-моделями – схемами валидации и сериализации данных. Они описывают форматы входящих запросов и выходящих ответов, обеспечивают проверку данных и служат документацией API.
 
-- # tests
-    Coming soon...
+- # /test
+    Папка с тестами для бэкенда. Тесты написаны с использованием pytest и pytest-asyncio.
+
+  ## Структура тестов
+
+  ```
+  test/
+  ├── __init__.py              # Инициализация тестового пакета
+  ├── conftest.py              # Общие фикстуры и конфигурация pytest
+  ├── test_auth_api.py         # Тесты API авторизации (/api/auth)
+  ├── test_auth_service.py     # Тесты сервиса авторизации
+  ├── test_history_api.py      # Тесты API истории взвешиваний (/api/history)
+  ├── test_upload_api.py       # Тесты API загрузки изображений и архивов
+  ├── test_image_service.py    # Тесты сервиса изображений
+  ├── test_archive_service.py  # Тесты сервиса обработки архивов
+  ├── test_repositories.py     # Тесты репозиториев (Image, CattleDetection, Batch)
+  ├── test_models.py           # Тесты ORM моделей
+  ├── test_validators.py       # Тесты валидаторов и file_helper
+  └── test_schemas.py          # Тесты Pydantic схем
+  ```
+
+  ## Покрытие тестами
+
+  ### API Endpoints
+  - **Auth API**: создание пользователя, авторизация, получение токена, защищенные эндпоинты
+  - **History API**: получение истории, фильтрация, пагинация, удаление записей
+  - **Upload API**: загрузка одиночных изображений, загрузка ZIP-архивов
+
+  ### Services
+  - **AuthService**: JWT токены, хеширование паролей, аутентификация
+  - **ImageService**: загрузка файлов, сохранение в S3/локально, ML предсказания
+  - **ArchiveService**: обработка ZIP, извлечение ID животных, расчет статистики
+
+  ### Repositories
+  - **ImageRepository**: создание, получение изображений
+  - **CattleDetectionRepository**: CRUD операции для детекций
+  - **BatchImageRepository**: управление пакетами изображений
+
+  ### Models
+  - **User**: создание, связи с пакетами
+  - **UserRole**: роли пользователей
+  - **Image**: изображения, связи с детекциями
+  - **ImageBatch**: пакеты изображений, каскадное удаление
+  - **CattleDetection**: результаты детекции
+
+  ### Validators & Utils
+  - **ImageValidator**: MIME типы, сигнатуры файлов, размер, целостность
+  - **FileHelper**: генерация имен, сохранение в папку/S3
+
+  ### Schemas
+  - Схемы загрузки (upload.py)
+  - Схемы истории (history.py)
+  - Схемы пользователей (user.py)
+  - Схемы токенов (token.py)
+
+  ## Запуск тестов
+
+  ```bash
+  # Установка зависимостей для тестов
+  pip install pytest pytest-asyncio httpx aiosqlite
+
+  # Запуск всех тестов
+  pytest
+
+  # Запуск с подробным выводом
+  pytest -v
+
+  # Запуск только unit тестов
+  pytest -m unit
+
+  # Запуск только API тестов
+  pytest -m api
+
+  # Запуск конкретного файла
+  pytest test/test_auth_api.py
+
+  # Запуск с покрытием кода
+  pip install pytest-cov
+  pytest --cov=backend --cov-report=html
+  ```
+
+  ## Маркеры тестов
+
+  - `@pytest.mark.unit` - Unit тесты
+  - `@pytest.mark.integration` - Интеграционные тесты
+  - `@pytest.mark.api` - Тесты API эндпоинтов
+  - `@pytest.mark.slow` - Медленные тесты
+
+  ## Фикстуры
+
+  Основные фикстуры определены в `conftest.py`:
+  - `test_session` - Асинхронная сессия тестовой БД (SQLite in-memory)
+  - `async_client` - Асинхронный HTTP клиент для тестов API
+  - `auth_headers` - Заголовки с JWT токеном для авторизованных запросов
+  - `sample_image_bytes` - Тестовые байты JPEG изображения
+  - `sample_zip_bytes` - Тестовый ZIP архив с изображениями
+  - `create_upload_file` - Фабрика для создания UploadFile объектов
+  - `mock_s3_client` - Мок S3 клиента
+  - `mock_ml_adapter` - Мок ML адаптера
