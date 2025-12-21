@@ -21,6 +21,18 @@ TEMP_DIR.mkdir(exist_ok=True)
 
 
 def _generate_pdf_report(local_path: Path, df: pd.DataFrame, payload):
+    """
+    Генерирует PDF отчет с помощью ReportLab (выполняется в отдельном потоке).
+
+    Args:
+        local_path: Путь к выходному PDF файлу
+        df: pandas DataFrame с данными взвешиваний
+        payload: ReportGenerateRequest с типом отчета (summary/detailed)
+
+    Примечание:
+        Создает таблицу взвешиваний + сводку по животным (если report_type="summary")
+        Использует A4 формат, стили ReportLab (grey header, beige rows)
+    """
     # TODO: добавить дату генерации
     # TODO: добавить логин сгенерировавшего отчёт юзера
     # TODO: улучшить общую структуру отчёта, сделать более приятным глазу, убрать поле nn_animal_id
@@ -60,7 +72,23 @@ def _generate_pdf_report(local_path: Path, df: pd.DataFrame, payload):
 
 
 async def generate_report_s3(mode: str, report_id: str, payload: ReportGenerateRequest, db: AsyncSession):
-    """Генерирует Excel/PDF и загружает в VK Cloud Storage"""
+    """
+    Асинхронно генерирует Excel/PDF отчет и загружает в VK Cloud S3 Storage.
+
+    Args:
+        mode: "excel" или "pdf" формат отчета
+        report_id: Уникальный ID отчета (report-abc123)
+        payload: ReportGenerateRequest с фильтрами (dates, animal_ids, include_weighs)
+        db: AsyncSession для запроса CattleDetection данных
+
+    Фильтры запроса:
+        - start_date/end_date: диапазон дат
+        - animal_ids: список номеров бирок
+        - include_weighs: список CattleDetection.id
+
+    Raises:
+        Exception: Любые ошибки логируются и перебрасываются для background task
+    """
     local_path = TEMP_DIR / f"{report_id}.{'pdf' if mode == 'pdf' else 'xlsx'}"
     s3_key = f"{report_id}.{'pdf' if mode == 'pdf' else 'xlsx'}"
     content_type = 'application/pdf' if mode == 'pdf' else 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'

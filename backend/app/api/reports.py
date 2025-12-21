@@ -25,6 +25,25 @@ TEMP_DIR.mkdir(exist_ok=True)
 async def get_user_reports(
         db: db_dependency,
         current_user: Annotated[dict, Depends(get_current_user)]):
+    """
+        Получить список всех отчетов текущего пользователя.
+
+        Возвращает:
+        - user_id: ID пользователя
+        - reports: список отчетов с полями id, name, url
+
+        Пример ответа:
+        {
+            "user_id": 21,
+            "reports": [
+                {"id": 1, "name": "report-abc123.xlsx", "url": "..."},
+                {"id": 2, "name": "report-def456.pdf", "url": "..."}
+            ]
+        }
+
+        Raises:
+            HTTPException: 401 если нет учетных данных
+        """
     try:
         query = select(Report).where(Report.user_id == int(current_user["user_id"]))
         result = await db.execute(query)
@@ -53,7 +72,20 @@ async def generate_report(
         db: db_dependency,
         current_user: Annotated[dict, Depends(get_current_user)]
 ):
-    # TODO: собирать отчёты по cattle_detections.id (поле include_weighs в payload)
+    """
+    Асинхронно генерирует отчет в фоне (Excel/PDF) и сохраняет в VK Cloud S3.
+
+    Args:
+        payload: ReportGenerateRequest с параметрами отчета (format: "excel"|"pdf")
+        background_tasks: FastAPI BackgroundTasks для асинхронной генерации
+        db: AsyncSession для сохранения записи отчета
+        current_user: Текущий авторизованный пользователь
+
+    Returns:
+        ReportGenerateResponse с report_id, status="processing", estimated_time=30s
+
+    Запускает background task generate_report_s3 и сразу возвращает 202 Accepted.
+    """
     report_id = f"report-{uuid.uuid4().hex[:8]}"
 
     if payload.format == "excel":
@@ -90,11 +122,39 @@ async def generate_report(
 
 @router.get("/{report_id}")
 async def get_report_status(report_id: str, current_user: Annotated[dict, Depends(get_current_user)]):
+    """
+    Перенаправляет на скачивание отчета (307 Temporary Redirect).
+
+    Используется как промежуточный эндпоинт для проверки статуса и редиректа.
+
+    Args:
+        report_id: Уникальный ID отчета (report-abc123)
+        current_user: Текущий авторизованный пользователь
+
+    Returns:
+        RedirectResponse на /reports/{report_id}/download
+    """
     return RedirectResponse(url=f"/reports/{report_id}/download", status_code=307)
 
 
 @router.get("/{report_id}/download")
 async def download_report(report_id: str, current_user: Annotated[dict, Depends(get_current_user)]):
+    """
+    Генерирует signed URL для скачивания отчета из VK Cloud S3 (24 часа).
+
+    Args:
+        report_id: Уникальный ID отчета (report-abc123)
+        current_user: Текущий авторизованный пользователь
+
+    Returns:
+        RedirectResponse на presigned S3 URL для прямого скачивания
+
+    Raises:
+        HTTPException:
+            404: Report not ready or not found (NoSuchKey)
+            403: Access denied
+            500: S3 configuration error или другие ошибки
+    """
     # TODO: С3 ключ адаптировать для PDF
     s3_key = f"{report_id}.xlsx"
     try:

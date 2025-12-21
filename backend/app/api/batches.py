@@ -21,17 +21,34 @@ async def get_batch_statistics(
         current_user: Annotated[dict, Depends(get_current_user)],
         page: int = Query(1, ge=1, description="Номер страницы (начиная с 1)"),
         limit: int = Query(10, ge=1, le=100, description="Количество записей на странице"),
-        db: AsyncSession = Depends(get_db),
-):
+        db: AsyncSession = Depends(get_db)):
     """
-    GET /batches/stats?page=1&limit=10 - статистика по батчам с пагинацией
+    Получает пагинированную статистику по батчам изображений с агрегацией данных.
+
+    Args:
+        current_user: Текущий авторизованный пользователь (для фильтрации по user_id)
+        page: Номер страницы (начиная с 1, минимум 1)
+        limit: Количество батчей на странице (1-100, по умолчанию 10)
+        db: AsyncSession для выполнения агрегирующих запросов
+
+    Returns:
+        BatchStatsResponse с метаданными пагинации и списком статистики:
+        {
+            "items": [BatchStats, ...],
+            "total": int, "page": int, "limit": int, "total_pages": int
+        }
+
+    Статистика по батчу:
+        - batch_number: ID батча
+        - photo_count: количество фото
+        - avg_weight: средний вес коровы (NULL если нет детекций)
+        - total_weight: общий вес всех коров
+        - create_date/time: дата и время создания
     """
-    # Подсчет общего количества батчей
     count_query = select(func.count(ImageBatch.id))
     total_result = await db.execute(count_query)
     total = total_result.scalar()
 
-    # Основной запрос с пагинацией
     offset = (page - 1) * limit
 
     query = (
