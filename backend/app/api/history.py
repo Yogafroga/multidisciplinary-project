@@ -55,7 +55,7 @@ async def get_history_by_id(
     # Правильное создание модели
     return HistoryItem(
         id=detection.id,
-        animal_id=str(detection.nn_object_id) if detection.nn_object_id is not None else None,
+        animal_id=detection.animal_id,
         weight=detection.weight,
         weight_units="kg",
         confidence=detection.confidence,
@@ -70,7 +70,7 @@ async def get_history_by_id(
 async def get_history(
         db: db_dependency,
         current_user: Annotated[dict, Depends(get_current_user)],
-        animal_id: Optional[int] = Query(None, description="ID животного (nn_object_id)"),
+        animal_id: Optional[str] = Query(None, description="ID животного (номер бирки)"),
         start_date: Optional[date] = Query(None),
         end_date: Optional[date] = Query(None),
         page: int = Query(1, ge=1),
@@ -84,9 +84,9 @@ async def get_history(
         .join(UserORM, ImageBatch.user_id == UserORM.id)
     )
 
-    # Фильтр по animal_id (nn_object_id)
+    # Фильтр по animal_id (номер бирки)
     if animal_id is not None:
-        base_query = base_query.where(CattleDetection.animal_id == str(animal_id))
+        base_query = base_query.where(CattleDetection.animal_id == animal_id)
 
     # Фильтр по дате (по create_datetime из cattle_detections)
     if start_date is not None:
@@ -119,7 +119,7 @@ async def get_history(
         items.append(
             HistoryItem(
                 id=detection.id,
-                animal_id=str(detection.nn_object_id) if detection.nn_object_id is not None else None,
+                animal_id=detection.animal_id,
                 weight=detection.weight,
                 weight_units="kg",
                 confidence=detection.confidence,  # добавишь поле в БД — маппишь сюда
