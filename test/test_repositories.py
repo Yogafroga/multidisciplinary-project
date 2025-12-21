@@ -18,13 +18,13 @@ class TestImageRepository:
     async def test_create_image(self, test_session):
         """Тест создания изображения."""
         from backend.app.repositories.image_repository import ImageRepository
-        from backend.app.models.user_role import UserRole
+        from backend.app.models.user_role import User_role
         from backend.app.models.user import User
         from backend.app.models.image_batch import ImageBatch
         from backend.app.services.auth import bcrypt_context
 
         # Создаем зависимости
-        role = UserRole(id=1, name="user")
+        role = User_role(id=1, role="user")
         test_session.add(role)
         await test_session.commit()
 
@@ -59,12 +59,12 @@ class TestImageRepository:
     async def test_create_image_with_uid(self, test_session):
         """Тест что изображение получает автоматический UUID."""
         from backend.app.repositories.image_repository import ImageRepository
-        from backend.app.models.user_role import UserRole
+        from backend.app.models.user_role import User_role
         from backend.app.models.user import User
         from backend.app.models.image_batch import ImageBatch
         from backend.app.services.auth import bcrypt_context
 
-        role = UserRole(id=1, name="user")
+        role = User_role(id=1, role="user")
         test_session.add(role)
         await test_session.commit()
 
@@ -101,13 +101,13 @@ class TestCattleDetectionRepository:
         """Тест создания детекции."""
         from backend.app.repositories.cattle_detection_repository import CattleDetectionRepository
         from backend.app.repositories.image_repository import ImageRepository
-        from backend.app.models.user_role import UserRole
+        from backend.app.models.user_role import User_role
         from backend.app.models.user import User
         from backend.app.models.image_batch import ImageBatch
         from backend.app.services.auth import bcrypt_context
 
         # Создаем зависимости
-        role = UserRole(id=1, name="user")
+        role = User_role(id=1, role="user")
         test_session.add(role)
         await test_session.commit()
 
@@ -150,12 +150,12 @@ class TestCattleDetectionRepository:
         """Тест создания детекции с минимальными данными."""
         from backend.app.repositories.cattle_detection_repository import CattleDetectionRepository
         from backend.app.repositories.image_repository import ImageRepository
-        from backend.app.models.user_role import UserRole
+        from backend.app.models.user_role import User_role
         from backend.app.models.user import User
         from backend.app.models.image_batch import ImageBatch
         from backend.app.services.auth import bcrypt_context
 
-        role = UserRole(id=1, name="user")
+        role = User_role(id=1, role="user")
         test_session.add(role)
         await test_session.commit()
 
@@ -188,12 +188,12 @@ class TestCattleDetectionRepository:
         """Тест получения детекции по ID."""
         from backend.app.repositories.cattle_detection_repository import CattleDetectionRepository
         from backend.app.repositories.image_repository import ImageRepository
-        from backend.app.models.user_role import UserRole
+        from backend.app.models.user_role import User_role
         from backend.app.models.user import User
         from backend.app.models.image_batch import ImageBatch
         from backend.app.services.auth import bcrypt_context
 
-        role = UserRole(id=1, name="user")
+        role = User_role(id=1, role="user")
         test_session.add(role)
         await test_session.commit()
 
@@ -238,12 +238,12 @@ class TestCattleDetectionRepository:
         """Тест получения детекций по ID животного."""
         from backend.app.repositories.cattle_detection_repository import CattleDetectionRepository
         from backend.app.repositories.image_repository import ImageRepository
-        from backend.app.models.user_role import UserRole
+        from backend.app.models.user_role import User_role
         from backend.app.models.user import User
         from backend.app.models.image_batch import ImageBatch
         from backend.app.services.auth import bcrypt_context
 
-        role = UserRole(id=1, name="user")
+        role = User_role(id=1, role="user")
         test_session.add(role)
         await test_session.commit()
 
@@ -278,12 +278,12 @@ class TestCattleDetectionRepository:
         """Тест получения детекций по ID изображения."""
         from backend.app.repositories.cattle_detection_repository import CattleDetectionRepository
         from backend.app.repositories.image_repository import ImageRepository
-        from backend.app.models.user_role import UserRole
+        from backend.app.models.user_role import User_role
         from backend.app.models.user import User
         from backend.app.models.image_batch import ImageBatch
         from backend.app.services.auth import bcrypt_context
 
-        role = UserRole(id=1, name="user")
+        role = User_role(id=1, role="user")
         test_session.add(role)
         await test_session.commit()
 
@@ -320,11 +320,11 @@ class TestBatchImageRepository:
     async def test_create_batch(self, test_session):
         """Тест создания пакета."""
         from backend.app.repositories.batch_image_repository import BatchImageRepository
-        from backend.app.models.user_role import UserRole
+        from backend.app.models.user_role import User_role
         from backend.app.models.user import User
         from backend.app.services.auth import bcrypt_context
 
-        role = UserRole(id=1, name="user")
+        role = User_role(id=1, role="user")
         test_session.add(role)
         await test_session.commit()
 
@@ -344,11 +344,11 @@ class TestBatchImageRepository:
     async def test_create_batch_auto_uid(self, test_session):
         """Тест создания пакета с автоматическим UUID."""
         from backend.app.repositories.batch_image_repository import BatchImageRepository
-        from backend.app.models.user_role import UserRole
+        from backend.app.models.user_role import User_role
         from backend.app.models.user import User
         from backend.app.services.auth import bcrypt_context
 
-        role = UserRole(id=1, name="user")
+        role = User_role(id=1, role="user")
         test_session.add(role)
         await test_session.commit()
 
@@ -367,11 +367,11 @@ class TestBatchImageRepository:
     async def test_get_by_uid(self, test_session):
         """Тест получения пакета по UUID."""
         from backend.app.repositories.batch_image_repository import BatchImageRepository
-        from backend.app.models.user_role import UserRole
+        from backend.app.models.user_role import User_role
         from backend.app.models.user import User
         from backend.app.services.auth import bcrypt_context
 
-        role = UserRole(id=1, name="user")
+        role = User_role(id=1, role="user")
         test_session.add(role)
         await test_session.commit()
 
@@ -402,11 +402,11 @@ class TestBatchImageRepository:
     async def test_get_or_create_existing(self, test_session):
         """Тест get_or_create для существующего пакета."""
         from backend.app.repositories.batch_image_repository import BatchImageRepository
-        from backend.app.models.user_role import UserRole
+        from backend.app.models.user_role import User_role
         from backend.app.models.user import User
         from backend.app.services.auth import bcrypt_context
 
-        role = UserRole(id=1, name="user")
+        role = User_role(id=1, role="user")
         test_session.add(role)
         await test_session.commit()
 
@@ -427,11 +427,11 @@ class TestBatchImageRepository:
     async def test_get_or_create_new(self, test_session):
         """Тест get_or_create для нового пакета."""
         from backend.app.repositories.batch_image_repository import BatchImageRepository
-        from backend.app.models.user_role import UserRole
+        from backend.app.models.user_role import User_role
         from backend.app.models.user import User
         from backend.app.services.auth import bcrypt_context
 
-        role = UserRole(id=1, name="user")
+        role = User_role(id=1, role="user")
         test_session.add(role)
         await test_session.commit()
 

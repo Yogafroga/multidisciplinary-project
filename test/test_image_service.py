@@ -9,8 +9,6 @@
 - Предсказание веса
 """
 import pytest
-from io import BytesIO
-from pathlib import Path
 from unittest.mock import AsyncMock, MagicMock, patch
 import uuid
 
@@ -80,13 +78,13 @@ class TestImageService:
     async def test_create_db_entries(self, test_session):
         """Тест создания записей в БД."""
         from backend.app.services.image_service import ImageService
-        from backend.app.models.user_role import UserRole
+        from backend.app.models.user_role import User_role
         from backend.app.models.user import User
         from backend.app.models.image_batch import ImageBatch
         from backend.app.services.auth import bcrypt_context
 
         # Создаем пользователя и батч
-        role = UserRole(id=1, name="user")
+        role = User_role(id=1, role="user")
         test_session.add(role)
         await test_session.commit()
 
@@ -201,12 +199,12 @@ class TestImageService:
     async def test_upload_image_full_flow(self, test_session, create_upload_file):
         """Тест полного процесса загрузки изображения."""
         from backend.app.services.image_service import ImageService
-        from backend.app.models.user_role import UserRole
+        from backend.app.models.user_role import User_role
         from backend.app.models.user import User
         from backend.app.services.auth import bcrypt_context
 
         # Создаем пользователя
-        role = UserRole(id=1, name="user")
+        role = User_role(id=1, role="user")
         test_session.add(role)
         await test_session.commit()
 

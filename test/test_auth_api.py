@@ -7,7 +7,6 @@
 - Валидация данных
 """
 import pytest
-from unittest.mock import AsyncMock, patch, MagicMock
 from fastapi import status
 
 
@@ -25,10 +24,10 @@ class TestAuthAPI:
     @pytest.mark.asyncio
     async def test_create_user_success(self, async_client, test_session):
         """Тест успешного создания пользователя."""
-        from backend.app.models.user_role import UserRole
+        from backend.app.models.user_role import User_role
 
         # Создаем роль пользователя
-        role = UserRole(id=1, name="user")
+        role = User_role(id=1, role="user")
         test_session.add(role)
         await test_session.commit()
 
@@ -47,12 +46,12 @@ class TestAuthAPI:
     @pytest.mark.asyncio
     async def test_create_user_duplicate_login(self, async_client, test_session):
         """Тест создания пользователя с существующим логином."""
-        from backend.app.models.user_role import UserRole
+        from backend.app.models.user_role import User_role
         from backend.app.models.user import User
         from backend.app.services.auth import bcrypt_context
 
         # Создаем роль и пользователя
-        role = UserRole(id=1, name="user")
+        role = User_role(id=1, role="user")
         test_session.add(role)
         await test_session.commit()
 
@@ -80,12 +79,12 @@ class TestAuthAPI:
     @pytest.mark.asyncio
     async def test_login_success(self, async_client, test_session):
         """Тест успешной авторизации."""
-        from backend.app.models.user_role import UserRole
+        from backend.app.models.user_role import User_role
         from backend.app.models.user import User
         from backend.app.services.auth import bcrypt_context
 
         # Создаем роль и пользователя
-        role = UserRole(id=1, name="user")
+        role = User_role(id=1, role="user")
         test_session.add(role)
         await test_session.commit()
 
@@ -112,12 +111,12 @@ class TestAuthAPI:
     @pytest.mark.asyncio
     async def test_login_invalid_credentials(self, async_client, test_session):
         """Тест авторизации с неверными данными."""
-        from backend.app.models.user_role import UserRole
+        from backend.app.models.user_role import User_role
         from backend.app.models.user import User
         from backend.app.services.auth import bcrypt_context
 
         # Создаем роль и пользователя
-        role = UserRole(id=1, name="user")
+        role = User_role(id=1, role="user")
         test_session.add(role)
         await test_session.commit()
 
@@ -166,12 +165,12 @@ class TestAuthAPI:
     @pytest.mark.asyncio
     async def test_protected_endpoint_with_valid_token(self, async_client, test_session, auth_headers):
         """Тест доступа к защищенному эндпоинту с валидным токеном."""
-        from backend.app.models.user_role import UserRole
+        from backend.app.models.user_role import User_role
         from backend.app.models.user import User
         from backend.app.services.auth import bcrypt_context
 
         # Создаем роль и пользователя
-        role = UserRole(id=1, name="user")
+        role = User_role(id=1, role="user")
         test_session.add(role)
         await test_session.commit()
 
@@ -206,9 +205,9 @@ class TestAuthAPI:
     @pytest.mark.asyncio
     async def test_create_user_empty_login(self, async_client, test_session):
         """Тест создания пользователя с пустым логином."""
-        from backend.app.models.user_role import UserRole
+        from backend.app.models.user_role import User_role
 
-        role = UserRole(id=1, name="user")
+        role = User_role(id=1, role="user")
         test_session.add(role)
         await test_session.commit()
 

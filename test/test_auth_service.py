@@ -9,7 +9,6 @@
 """
 import pytest
 from datetime import timedelta, datetime, UTC
-from unittest.mock import AsyncMock, MagicMock, patch
 from jose import jwt
 from fastapi import HTTPException
 
@@ -165,10 +164,10 @@ class TestAuthService:
         """Тест успешной аутентификации пользователя."""
         from backend.app.services.auth import authenticate_user, bcrypt_context
         from backend.app.models.user import User
-        from backend.app.models.user_role import UserRole
+        from backend.app.models.user_role import User_role
 
         # Создаем роль и пользователя
-        role = UserRole(id=1, name="user")
+        role = User_role(id=1, role="user")
         test_session.add(role)
         await test_session.commit()
 
@@ -191,9 +190,9 @@ class TestAuthService:
         """Тест аутентификации с неверным паролем."""
         from backend.app.services.auth import authenticate_user, bcrypt_context
         from backend.app.models.user import User
-        from backend.app.models.user_role import UserRole
+        from backend.app.models.user_role import User_role
 
-        role = UserRole(id=1, name="user")
+        role = User_role(id=1, role="user")
         test_session.add(role)
         await test_session.commit()
 

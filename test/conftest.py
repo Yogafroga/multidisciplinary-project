@@ -10,7 +10,6 @@ from io import BytesIO
 from pathlib import Path
 from typing import AsyncGenerator, Generator
 from unittest.mock import AsyncMock, MagicMock, patch
-import uuid
 
 import pytest
 import pytest_asyncio

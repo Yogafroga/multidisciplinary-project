@@ -10,7 +10,6 @@ import pytest
 from io import BytesIO
 from unittest.mock import AsyncMock, patch, MagicMock
 from fastapi import status
-import uuid
 
 
 class TestUploadImageAPI:
@@ -35,12 +34,12 @@ class TestUploadImageAPI:
     @pytest.mark.asyncio
     async def test_upload_image_success(self, async_client, test_session, auth_headers, sample_image_bytes):
         """Тест успешной загрузки изображения."""
-        from backend.app.models.user_role import UserRole
+        from backend.app.models.user_role import User_role
         from backend.app.models.user import User
         from backend.app.services.auth import bcrypt_context
 
         # Создаем пользователя
-        role = UserRole(id=1, name="user")
+        role = User_role(id=1, role="user")
         test_session.add(role)
         await test_session.commit()
 
@@ -92,11 +91,11 @@ class TestUploadImageAPI:
     @pytest.mark.asyncio
     async def test_upload_image_missing_animal_id(self, async_client, test_session, auth_headers, sample_image_bytes):
         """Тест загрузки без указания animal_id."""
-        from backend.app.models.user_role import UserRole
+        from backend.app.models.user_role import User_role
         from backend.app.models.user import User
         from backend.app.services.auth import bcrypt_context
 
-        role = UserRole(id=1, name="user")
+        role = User_role(id=1, role="user")
         test_session.add(role)
         await test_session.commit()
 
@@ -123,12 +122,12 @@ class TestUploadImageAPI:
     @pytest.mark.asyncio
     async def test_upload_image_invalid_format(self, async_client, test_session, auth_headers):
         """Тест загрузки файла неподдерживаемого формата."""
-        from backend.app.models.user_role import UserRole
+        from backend.app.models.user_role import User_role
         from backend.app.models.user import User
         from backend.app.services.auth import bcrypt_context
         from fastapi import HTTPException
 
-        role = UserRole(id=1, name="user")
+        role = User_role(id=1, role="user")
         test_session.add(role)
         await test_session.commit()
 
@@ -167,12 +166,12 @@ class TestUploadImageAPI:
     @pytest.mark.asyncio
     async def test_upload_image_too_large(self, async_client, test_session, auth_headers):
         """Тест загрузки слишком большого файла."""
-        from backend.app.models.user_role import UserRole
+        from backend.app.models.user_role import User_role
         from backend.app.models.user import User
         from backend.app.services.auth import bcrypt_context
         from fastapi import HTTPException
 
-        role = UserRole(id=1, name="user")
+        role = User_role(id=1, role="user")
         test_session.add(role)
         await test_session.commit()
 
@@ -213,11 +212,11 @@ class TestUploadImageAPI:
     @pytest.mark.asyncio
     async def test_upload_image_service_error(self, async_client, test_session, auth_headers, sample_image_bytes):
         """Тест обработки ошибки сервиса."""
-        from backend.app.models.user_role import UserRole
+        from backend.app.models.user_role import User_role
         from backend.app.models.user import User
         from backend.app.services.auth import bcrypt_context
 
-        role = UserRole(id=1, name="user")
+        role = User_role(id=1, role="user")
         test_session.add(role)
         await test_session.commit()
 
@@ -271,11 +270,11 @@ class TestUploadArchiveAPI:
     @pytest.mark.asyncio
     async def test_upload_archive_success(self, async_client, test_session, auth_headers, sample_zip_bytes):
         """Тест успешной загрузки архива."""
-        from backend.app.models.user_role import UserRole
+        from backend.app.models.user_role import User_role
         from backend.app.models.user import User
         from backend.app.services.auth import bcrypt_context
 
-        role = UserRole(id=1, name="user")
+        role = User_role(id=1, role="user")
         test_session.add(role)
         await test_session.commit()
 
@@ -325,11 +324,11 @@ class TestUploadArchiveAPI:
     @pytest.mark.asyncio
     async def test_upload_archive_not_zip(self, async_client, test_session, auth_headers):
         """Тест загрузки файла, который не является ZIP."""
-        from backend.app.models.user_role import UserRole
+        from backend.app.models.user_role import User_role
         from backend.app.models.user import User
         from backend.app.services.auth import bcrypt_context
 
-        role = UserRole(id=1, name="user")
+        role = User_role(id=1, role="user")
         test_session.add(role)
         await test_session.commit()
 
@@ -357,11 +356,11 @@ class TestUploadArchiveAPI:
     @pytest.mark.asyncio
     async def test_upload_archive_with_failures(self, async_client, test_session, auth_headers, sample_zip_bytes):
         """Тест загрузки архива с частичными ошибками."""
-        from backend.app.models.user_role import UserRole
+        from backend.app.models.user_role import User_role
         from backend.app.models.user import User
         from backend.app.services.auth import bcrypt_context
 
-        role = UserRole(id=1, name="user")
+        role = User_role(id=1, role="user")
         test_session.add(role)
         await test_session.commit()
 
@@ -409,11 +408,11 @@ class TestUploadArchiveAPI:
     @pytest.mark.asyncio
     async def test_upload_archive_service_error(self, async_client, test_session, auth_headers, sample_zip_bytes):
         """Тест обработки ошибки сервиса архивов."""
-        from backend.app.models.user_role import UserRole
+        from backend.app.models.user_role import User_role
         from backend.app.models.user import User
         from backend.app.services.auth import bcrypt_context
 
-        role = UserRole(id=1, name="user")
+        role = User_role(id=1, role="user")
         test_session.add(role)
         await test_session.commit()
 

@@ -8,8 +8,6 @@
 - Пагинация и фильтрация
 """
 import pytest
-from datetime import datetime, UTC
-from unittest.mock import AsyncMock, patch
 from fastapi import status
 import uuid
 
@@ -21,12 +19,12 @@ class TestHistoryAPI:
     @pytest.mark.asyncio
     async def test_get_history_empty(self, async_client, test_session, auth_headers):
         """Тест получения пустой истории."""
-        from backend.app.models.user_role import UserRole
+        from backend.app.models.user_role import User_role
         from backend.app.models.user import User
         from backend.app.services.auth import bcrypt_context
 
         # Создаем пользователя
-        role = UserRole(id=1, name="user")
+        role = User_role(id=1, role="user")
         test_session.add(role)
         await test_session.commit()
 
@@ -51,7 +49,7 @@ class TestHistoryAPI:
     @pytest.mark.asyncio
     async def test_get_history_with_data(self, async_client, test_session, auth_headers):
         """Тест получения истории с данными."""
-        from backend.app.models.user_role import UserRole
+        from backend.app.models.user_role import User_role
         from backend.app.models.user import User
         from backend.app.models.image_batch import ImageBatch
         from backend.app.models.image import Image
@@ -59,7 +57,7 @@ class TestHistoryAPI:
         from backend.app.services.auth import bcrypt_context
 
         # Создаем пользователя
-        role = UserRole(id=1, name="user")
+        role = User_role(id=1, role="user")
         test_session.add(role)
         await test_session.commit()
 
@@ -115,7 +113,7 @@ class TestHistoryAPI:
     @pytest.mark.asyncio
     async def test_get_history_pagination(self, async_client, test_session, auth_headers):
         """Тест пагинации истории."""
-        from backend.app.models.user_role import UserRole
+        from backend.app.models.user_role import User_role
         from backend.app.models.user import User
         from backend.app.models.image_batch import ImageBatch
         from backend.app.models.image import Image
@@ -123,7 +121,7 @@ class TestHistoryAPI:
         from backend.app.services.auth import bcrypt_context
 
         # Создаем пользователя
-        role = UserRole(id=1, name="user")
+        role = User_role(id=1, role="user")
         test_session.add(role)
         await test_session.commit()
 
@@ -187,7 +185,7 @@ class TestHistoryAPI:
     @pytest.mark.asyncio
     async def test_get_history_filter_by_animal_id(self, async_client, test_session, auth_headers):
         """Тест фильтрации по ID животного."""
-        from backend.app.models.user_role import UserRole
+        from backend.app.models.user_role import User_role
         from backend.app.models.user import User
         from backend.app.models.image_batch import ImageBatch
         from backend.app.models.image import Image
@@ -195,7 +193,7 @@ class TestHistoryAPI:
         from backend.app.services.auth import bcrypt_context
 
         # Создаем пользователя
-        role = UserRole(id=1, name="user")
+        role = User_role(id=1, role="user")
         test_session.add(role)
         await test_session.commit()
 
@@ -248,7 +246,7 @@ class TestHistoryAPI:
     @pytest.mark.asyncio
     async def test_get_history_by_id_success(self, async_client, test_session):
         """Тест получения истории по ID животного."""
-        from backend.app.models.user_role import UserRole
+        from backend.app.models.user_role import User_role
         from backend.app.models.user import User
         from backend.app.models.image_batch import ImageBatch
         from backend.app.models.image import Image
@@ -256,7 +254,7 @@ class TestHistoryAPI:
         from backend.app.services.auth import bcrypt_context
 
         # Создаем пользователя
-        role = UserRole(id=1, name="user")
+        role = User_role(id=1, role="user")
         test_session.add(role)
         await test_session.commit()
 
@@ -313,7 +311,7 @@ class TestHistoryAPI:
     @pytest.mark.asyncio
     async def test_delete_history_success(self, async_client, test_session):
         """Тест успешного удаления записи истории."""
-        from backend.app.models.user_role import UserRole
+        from backend.app.models.user_role import User_role
         from backend.app.models.user import User
         from backend.app.models.image_batch import ImageBatch
         from backend.app.models.image import Image
@@ -321,7 +319,7 @@ class TestHistoryAPI:
         from backend.app.services.auth import bcrypt_context
 
         # Создаем пользователя
-        role = UserRole(id=1, name="user")
+        role = User_role(id=1, role="user")
         test_session.add(role)
         await test_session.commit()
 

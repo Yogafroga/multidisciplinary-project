@@ -3,14 +3,13 @@
 
 Покрывает:
 - User
-- UserRole
+- User_role
 - Image
 - ImageBatch
 - CattleDetection
 """
 import pytest
 import uuid
-from datetime import datetime
 
 
 class TestUserModel:
@@ -21,9 +20,9 @@ class TestUserModel:
     async def test_user_creation(self, test_session):
         """Тест создания пользователя."""
         from backend.app.models.user import User
-        from backend.app.models.user_role import UserRole
+        from backend.app.models.user_role import User_role
 
-        role = UserRole(id=1, name="admin")
+        role = User_role(id=1, role="admin")
         test_session.add(role)
         await test_session.commit()
 
@@ -44,10 +43,10 @@ class TestUserModel:
     async def test_user_relationship_with_batches(self, test_session):
         """Тест связи пользователя с пакетами изображений."""
         from backend.app.models.user import User
-        from backend.app.models.user_role import UserRole
+        from backend.app.models.user_role import User_role
         from backend.app.models.image_batch import ImageBatch
 
-        role = UserRole(id=1, name="user")
+        role = User_role(id=1, role="user")
         test_session.add(role)
         await test_session.commit()
 
@@ -71,28 +70,28 @@ class TestUserModel:
 
     @pytest.mark.unit
     @pytest.mark.asyncio
-    async def test_user_tablename(self, test_session):
+    async def test_user_tablerole(self, test_session):
         """Тест что имя таблицы корректное."""
         from backend.app.models.user import User
 
-        assert User.__tablename__ == "users"
+        assert User.__tablerole__ == "users"
 
 
-class TestUserRoleModel:
-    """Тесты для модели UserRole."""
+class TestUser_roleModel:
+    """Тесты для модели User_role."""
 
     @pytest.mark.unit
     @pytest.mark.asyncio
     async def test_role_creation(self, test_session):
         """Тест создания роли."""
-        from backend.app.models.user_role import UserRole
+        from backend.app.models.user_role import User_role
 
-        role = UserRole(id=1, name="operator")
+        role = User_role(id=1, role="operator")
         test_session.add(role)
         await test_session.commit()
 
         assert role.id == 1
-        assert role.name == "operator"
+        assert role.role == "operator"
 
 
 class TestImageBatchModel:
@@ -103,10 +102,10 @@ class TestImageBatchModel:
     async def test_batch_creation(self, test_session):
         """Тест создания пакета изображений."""
         from backend.app.models.user import User
-        from backend.app.models.user_role import UserRole
+        from backend.app.models.user_role import User_role
         from backend.app.models.image_batch import ImageBatch
 
-        role = UserRole(id=1, name="user")
+        role = User_role(id=1, role="user")
         test_session.add(role)
         await test_session.commit()
 
@@ -132,10 +131,10 @@ class TestImageBatchModel:
     async def test_batch_auto_uuid(self, test_session):
         """Тест автогенерации UUID для пакета."""
         from backend.app.models.user import User
-        from backend.app.models.user_role import UserRole
+        from backend.app.models.user_role import User_role
         from backend.app.models.image_batch import ImageBatch
 
-        role = UserRole(id=1, name="user")
+        role = User_role(id=1, role="user")
         test_session.add(role)
         await test_session.commit()
 
@@ -148,18 +147,18 @@ class TestImageBatchModel:
         await test_session.commit()
 
         # UUID должен быть сгенерирован по умолчанию
-        assert batch.uid is not None or batch.uid == None  # Зависит от default в модели
+        assert batch.uid is not None or batch.uid is None  # Зависит от default в модели
 
     @pytest.mark.unit
     @pytest.mark.asyncio
     async def test_batch_cascade_delete_images(self, test_session):
         """Тест каскадного удаления изображений при удалении пакета."""
         from backend.app.models.user import User
-        from backend.app.models.user_role import UserRole
+        from backend.app.models.user_role import User_role
         from backend.app.models.image_batch import ImageBatch
         from backend.app.models.image import Image
 
-        role = UserRole(id=1, name="user")
+        role = User_role(id=1, role="user")
         test_session.add(role)
         await test_session.commit()
 
@@ -200,11 +199,11 @@ class TestImageModel:
     async def test_image_creation(self, test_session):
         """Тест создания изображения."""
         from backend.app.models.user import User
-        from backend.app.models.user_role import UserRole
+        from backend.app.models.user_role import User_role
         from backend.app.models.image_batch import ImageBatch
         from backend.app.models.image import Image
 
-        role = UserRole(id=1, name="user")
+        role = User_role(id=1, role="user")
         test_session.add(role)
         await test_session.commit()
 
@@ -235,11 +234,11 @@ class TestImageModel:
     async def test_image_default_status(self, test_session):
         """Тест статуса по умолчанию."""
         from backend.app.models.user import User
-        from backend.app.models.user_role import UserRole
+        from backend.app.models.user_role import User_role
         from backend.app.models.image_batch import ImageBatch
         from backend.app.models.image import Image
 
-        role = UserRole(id=1, name="user")
+        role = User_role(id=1, role="user")
         test_session.add(role)
         await test_session.commit()
 
@@ -265,12 +264,12 @@ class TestImageModel:
     async def test_image_relationship_with_detections(self, test_session):
         """Тест связи изображения с детекциями."""
         from backend.app.models.user import User
-        from backend.app.models.user_role import UserRole
+        from backend.app.models.user_role import User_role
         from backend.app.models.image_batch import ImageBatch
         from backend.app.models.image import Image
         from backend.app.models.cattle_detection import CattleDetection
 
-        role = UserRole(id=1, name="user")
+        role = User_role(id=1, role="user")
         test_session.add(role)
         await test_session.commit()
 
@@ -304,12 +303,12 @@ class TestCattleDetectionModel:
     async def test_detection_creation(self, test_session):
         """Тест создания детекции."""
         from backend.app.models.user import User
-        from backend.app.models.user_role import UserRole
+        from backend.app.models.user_role import User_role
         from backend.app.models.image_batch import ImageBatch
         from backend.app.models.image import Image
         from backend.app.models.cattle_detection import CattleDetection
 
-        role = UserRole(id=1, name="user")
+        role = User_role(id=1, role="user")
         test_session.add(role)
         await test_session.commit()
 
@@ -345,12 +344,12 @@ class TestCattleDetectionModel:
     async def test_detection_auto_datetime(self, test_session):
         """Тест автоматической установки даты создания."""
         from backend.app.models.user import User
-        from backend.app.models.user_role import UserRole
+        from backend.app.models.user_role import User_role
         from backend.app.models.image_batch import ImageBatch
         from backend.app.models.image import Image
         from backend.app.models.cattle_detection import CattleDetection
 
-        role = UserRole(id=1, name="user")
+        role = User_role(id=1, role="user")
         test_session.add(role)
         await test_session.commit()
 
@@ -381,12 +380,12 @@ class TestCattleDetectionModel:
     async def test_detection_nullable_fields(self, test_session):
         """Тест nullable полей детекции."""
         from backend.app.models.user import User
-        from backend.app.models.user_role import UserRole
+        from backend.app.models.user_role import User_role
         from backend.app.models.image_batch import ImageBatch
         from backend.app.models.image import Image
         from backend.app.models.cattle_detection import CattleDetection
 
-        role = UserRole(id=1, name="user")
+        role = User_role(id=1, role="user")
         test_session.add(role)
         await test_session.commit()
 
