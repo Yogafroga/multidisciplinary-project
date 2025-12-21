@@ -12,7 +12,7 @@ from backend.schemas.user import CreateUser
 from backend.app.models.user import User as UserORM
 from sqlalchemy.ext.asyncio import AsyncSession
 
-router = APIRouter(prefix='/api/auth', tags=['auth'])
+router = APIRouter(prefix='/auth', tags=['auth'])
 
 
 @router.post("/create_user", status_code=status.HTTP_201_CREATED)
