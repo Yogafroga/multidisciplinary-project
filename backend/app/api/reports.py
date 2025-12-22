@@ -4,13 +4,12 @@ from typing import Annotated
 import aioboto3
 from pathlib import Path
 
-import httpx
 from botocore.exceptions import ClientError, NoCredentialsError
 from fastapi import APIRouter, status, HTTPException, BackgroundTasks, Depends, Query
-from fastapi.responses import RedirectResponse
+from fastapi.responses import RedirectResponse, StreamingResponse
 from fastapi.security import OAuth2PasswordBearer
-from httpx import Response
 from sqlalchemy import select
+from io import BytesIO
 
 from backend.app.models import Report
 from backend.schemas.reports import ReportGenerateRequest, ReportGenerateResponse
@@ -186,14 +185,22 @@ async def download_report(
                 ExpiresIn=86400
             )
             print(f"Signed URL for {report_id} → {s3_key} (user {current_user['user_id']}): {signed_url[:50]}...")
-            async with httpx.AsyncClient() as client:
-                s3_response = await client.get(signed_url)
-                return Response(
-                    content=s3_response.content,
-                    headers={
-                        "Content-Disposition": f"attachment; filename={s3_key}",
-                    },
-                    status_code=s3_response.status_code)
+            
+            # Получаем файл из S3
+            response = await s3.get_object(Bucket=settings.VK_S3_REPORTS_BUCKET_NAME, Key=s3_key)
+            file_content = await response['Body'].read()
+            
+            # Определяем Content-Type по расширению файла
+            content_type = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" if s3_key.endswith('.xlsx') else "application/pdf"
+            
+            # Возвращаем файл как поток
+            return StreamingResponse(
+                BytesIO(file_content),
+                media_type=content_type,
+                headers={
+                    "Content-Disposition": f"attachment; filename={s3_key}",
+                }
+            )
 
     except ClientError as e:
         error_code = e.response['Error']['Code']
