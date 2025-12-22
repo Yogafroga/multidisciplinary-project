@@ -26,7 +26,7 @@
           </div>
         </th>
 
-        <!-- Заголовки из head -->
+        <!-- Заголовки -->
         <th
             v-for="field in head"
             :key="field.key"
@@ -55,7 +55,6 @@
           :key="item.id"
           :class="{ 'selected-row': selectedItems.includes(item.id) }"
       >
-        <!-- Чекбокс строки -->
         <td class="checkbox-td">
           <div class="custom-checkbox" @click="toggleRow(item.id)">
             <CheckboxChecked v-if="selectedItems.includes(item.id)" />
@@ -63,29 +62,23 @@
           </div>
         </td>
 
-        <!-- Данные и действия -->
         <td v-for="field in head" :key="field.key">
-          <!-- Фото (только название файла) -->
           <template v-if="field.key === 'photo'">
             {{ item.original_name ? getFileName(item.original_name) : '—' }}
           </template>
 
-          <!-- Дата -->
           <template v-else-if="field.key === 'date'">
             {{ formatDate(item.created_at) }}
           </template>
 
-          <!-- Время -->
           <template v-else-if="field.key === 'time'">
             {{ formatTime(item.created_at) }}
           </template>
 
-          <!-- Вес -->
           <template v-else-if="field.key === 'weight'">
             {{ item.weight }} кг
           </template>
 
-          <!-- Действия -->
           <template v-else-if="field.key === 'action'">
             <div class="actions-td">
               <button
@@ -112,7 +105,6 @@
             </div>
           </template>
 
-          <!-- Остальные поля -->
           <template v-else>
             {{ item[field.key] }}
           </template>
@@ -123,21 +115,19 @@
 
     <!-- Пагинация -->
     <div v-if="!loading" class="pagination">
-      <button
-          class="icon-btn"
-          :disabled="currentPage === 1"
-          @click="prevPage"
-      >
+      <button class="icon-btn" :disabled="currentPage === 1" @click="prevPage">
         <previousIcon />
       </button>
       <span>{{ currentPage }} / {{ pagesCount }}</span>
-      <button
-          class="icon-btn"
-          :disabled="currentPage >= pagesCount"
-          @click="nextPage"
-      >
+      <button class="icon-btn" :disabled="currentPage >= pagesCount" @click="nextPage">
         <nextIcon />
       </button>
+    </div>
+
+    <!-- Кнопка "Экспорт выбранных" -->
+    <div v-if="selectedItems.length > 0" class="bulk-actions">
+      <Button variant="download" @click="downloadSelected('pdf')">Экспорт PDF</Button>
+      <Button variant="download" @click="downloadSelected('excel')">Экспорт Excel</Button>
     </div>
   </div>
 </template>
@@ -145,8 +135,8 @@
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue';
 import { useCowsStore } from '../../stores/cows.js';
-import { jsPDF } from 'jspdf';
-import * as XLSX from 'xlsx';
+import { useReportsStore } from '../../stores/reports.js';
+import Button from '../../components/ui/button.vue';
 
 // Иконки
 import previousIcon from '../../assets/icons/main/Left.vue';
@@ -159,10 +149,12 @@ import Pdf_M from '../../assets/icons/files/Pdf_M.vue';
 import TrashIcon from '../../assets/icons/main/Trash.vue';
 
 const cowsStore = useCowsStore();
+const reportsStore = useReportsStore();
+
 const props = defineProps({
   type: {
     type: String,
-    default: 'weighings', // 'weighings' | 'operation'
+    default: 'weighings',
   },
   filterId: {
     type: [String, Number],
@@ -215,20 +207,15 @@ const toggleSort = (key) => {
   loadData();
 };
 
-// --- Вычисляем, какое состояние загружается/ошибается
+// --- Состояния ---
 const loading = computed(() => {
-  return props.type === 'operation'
-      ? cowsStore.batchStats.loading
-      : cowsStore.history.loading;
+  return props.type === 'operation' ? cowsStore.batchStats.loading : cowsStore.history.loading;
 });
 
 const error = computed(() => {
-  return props.type === 'operation'
-      ? cowsStore.batchStats.error
-      : cowsStore.history.error;
+  return props.type === 'operation' ? cowsStore.batchStats.error : cowsStore.history.error;
 });
 
-// --- Пагинация: общее количество страниц ---
 const pagesCount = computed(() => {
   return props.type === 'operation'
       ? Math.max(1, Math.ceil(cowsStore.batchStats.total / limit.value))
@@ -255,14 +242,13 @@ const loadData = async () => {
     }
 
     if (props.filterDateRange?.start) {
-      params.start_date = new Date(props.filterDateRange.start).toISOString().split('T')[0];
+      params.start_date = formatDateISO(props.filterDateRange.start);
     }
 
     if (props.filterDateRange?.end) {
-      params.end_date = new Date(props.filterDateRange.end).toISOString().split('T')[0];
+      params.end_date = formatDateISO(props.filterDateRange.end);
     }
 
-    console.log('FETCH HISTORY PARAMS:', params);
     await cowsStore.fetchHistory(params);
   }
 };
@@ -275,7 +261,6 @@ onMounted(() => {
 const displayedItems = computed(() => {
   if (props.type === 'operation') {
     return (cowsStore.batchStats.items || []).map((item) => {
-      // Парсим дату и время в один объект Date
       let createdAt = null;
       if (item.create_date) {
         const [year, month, day] = item.create_date.split('-').map(Number);
@@ -298,7 +283,7 @@ const displayedItems = computed(() => {
     animal_id: item.animal_id,
     weight: Math.round(item.weight),
     original_name: item.original_name,
-    created_at: new Date(item.created_at), // Убедимся, что это Date
+    created_at: new Date(item.created_at),
   }));
 });
 
@@ -311,6 +296,12 @@ const formatDate = (date) => {
 const formatTime = (date) => {
   if (!date || isNaN(date.getTime())) return '—';
   return date.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
+};
+
+const formatDateISO = (date) => {
+  if (!date) return null;
+  const d = new Date(date);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 };
 
 // --- Пагинация ---
@@ -350,22 +341,83 @@ const toggleSelectAll = () => {
   }
 };
 
-// --- Экспорт ---
-const downloadPDF = (item) => {
-  const doc = new jsPDF();
-  doc.setFontSize(16);
-  doc.text(`Запись ID: ${item.animal_id || 'Batch ' + item.id}`, 10, 10);
-  doc.setFontSize(12);
-  doc.text(`Вес: ${item.weight || item.total_weight} кг`, 10, 20);
-  doc.text(`Дата: ${formatDate(item.created_at)} ${formatTime(item.created_at)}`, 10, 30);
-  doc.save(`record_${item.animal_id || item.id}.pdf`);
+// --- Генерация отчёта ---
+const generateAndDownloadReport = async (ids, format) => {
+  if (!Array.isArray(ids) || ids.length === 0) {
+    alert('Нет записей для экспорта');
+    return;
+  }
+
+  let payload = {
+    format,
+    report_type: 'summary',
+    include_images: false,
+  };
+
+  // ✅ Если это операции (батчи) — используем batch_numbers
+  if (props.type === 'operation') {
+    payload.batch_numbers = ids; // [122, 123, ...]
+  }
+
+  // ✅ Если это взвешивания — используем include_weighs
+  if (props.type === 'weighings') {
+    payload.include_weighs = ids;
+  }
+
+  console.log('Payload:', payload);
+
+  const res = await reportsStore.generateReport(payload);
+  if (!res.success) {
+    alert('Ошибка генерации: ' + res.error);
+    return;
+  }
+
+  const reportId = res.data.report_id;
+  console.log('Отчёт сгенерирован, ID:', reportId);
+
+  await new Promise((resolve) => setTimeout(resolve, 10000));
+
+  try {
+    const token = localStorage.getItem('access_token');
+    if (!token) {
+      alert('Токен не найден');
+      return;
+    }
+
+    const url = `${import.meta.env.VITE_API_BASE_URL}/reports/${reportId}/download`;
+    const response = await fetch(url, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    if (response.status === 200) {
+      const blob = await response.blob();
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = `${reportId}.${format === 'excel' ? 'xlsx' : 'pdf'}`;
+      a.click();
+      URL.revokeObjectURL(a.href);
+      console.log('Файл успешно скачан');
+    } else {
+      alert(`Ошибка скачивания: ${response.status}`);
+    }
+  } catch (error) {
+    console.error('Ошибка скачивания:', error);
+    alert('Не удалось скачать файл');
+  }
 };
 
-const downloadExcel = (item) => {
-  const worksheet = XLSX.utils.json_to_sheet([item]);
-  const workbook = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(workbook, worksheet, 'Запись');
-  XLSX.writeFile(workbook, `record_${item.animal_id || item.id}.xlsx`);
+// --- Экспорт по одной записи ---
+const downloadPDF = async (item) => {
+  await generateAndDownloadReport([item.id], 'pdf');
+};
+
+const downloadExcel = async (item) => {
+  await generateAndDownloadReport([item.id], 'excel');
+};
+
+// --- Экспорт выбранных строк ---
+const downloadSelected = async (format) => {
+  await generateAndDownloadReport(selectedItems.value, format);
 };
 
 // --- Удаление записи ---
@@ -381,7 +433,7 @@ const deleteRecord = async (id) => {
   }
 };
 
-// --- Фильтры и сброс страницы ---
+// --- Фильтры ---
 watch(
     () => [props.filterId, props.filterDateRange],
     () => {
@@ -393,11 +445,17 @@ watch(
     { deep: true }
 );
 
-// --- Вспомогательные функции ---
+// --- Вспомогательные ---
 const getFileName = (url) => {
   if (!url) return '—';
   return url.split('/').pop();
 };
+
+// --- Эмит выбранных ---
+const emits = defineEmits(['update:selectedItems']);
+watch(selectedItems, (newVal) => {
+  emits('update:selectedItems', newVal);
+});
 </script>
 
 <style scoped lang="scss">
