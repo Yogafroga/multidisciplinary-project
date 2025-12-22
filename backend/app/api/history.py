@@ -16,6 +16,7 @@ from backend.schemas.history import HistoryItem, HistoryResponse, DeleteHistoryR
 
 router = APIRouter(tags=["history"])
 
+
 @router.delete("/history/{id}", response_model=DeleteHistoryResponse)
 async def delete_history(id: int, db: db_dependency):
     """
@@ -42,6 +43,7 @@ async def delete_history(id: int, db: db_dependency):
     return DeleteHistoryResponse(
         message="Record deleted successfully"
     )
+
 
 @router.get("/history/{animal_id}", response_model=HistoryItem)
 async def get_history_by_id(

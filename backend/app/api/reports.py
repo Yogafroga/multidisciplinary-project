@@ -106,6 +106,7 @@ async def generate_report(
     """
     report_id = f"report-{uuid.uuid4().hex[:8]}"
     user_id = current_user["user_id"]
+    username = current_user["username"]
     logger.info(f"Starting report generation: {report_id} (format: {payload.format}, user: {user_id})")
 
     if payload.format == "excel":
@@ -117,7 +118,8 @@ async def generate_report(
             "excel",
             report_id,
             payload,
-            db
+            db,
+            username
         )
     else:
         report = Report(url=f"{settings.VK_S3_ENDPOINT_URL}/{report_id}.pdf",
@@ -128,7 +130,8 @@ async def generate_report(
             "pdf",
             report_id,
             payload,
-            db
+            db,
+            username
         )
     db.add(report)
     await db.commit()

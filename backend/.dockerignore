@@ -36,11 +36,6 @@ htmlcov/
 *.cover
 .hypothesis/
 
-# Environment files
-.env
-.env.local
-.env.*.local
-
 # Logs
 *.log
 logs/

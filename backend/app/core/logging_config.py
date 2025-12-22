@@ -30,7 +30,7 @@ def setup_logging(log_level: str = "INFO") -> None:
     
     # Настройка уровней для сторонних библиотек
     logging.getLogger("uvicorn").setLevel(logging.INFO)
-    logging.getLogger("uvicorn.access").setLevel(logging.WARNING)
+    logging.getLogger("uvicorn.access").setLevel(logging.INFO)  # Показываем access логи
     logging.getLogger("fastapi").setLevel(logging.INFO)
     logging.getLogger("sqlalchemy.engine").setLevel(logging.WARNING)
     logging.getLogger("boto3").setLevel(logging.WARNING)
