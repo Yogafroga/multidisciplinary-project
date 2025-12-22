@@ -160,7 +160,7 @@ async def get_history(
                 weight=detection.weight,
                 weight_units="kg",
                 confidence=detection.confidence,
-                image_url=image.url_path,
+                original_name=image.original_name,
                 created_at=detection.create_datetime,
                 created_by=user.login,
                 batch_id=str(batch.uid),
