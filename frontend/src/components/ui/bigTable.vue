@@ -67,7 +67,7 @@
         <td v-for="field in head" :key="field.key">
           <!-- Фото (только название файла) -->
           <template v-if="field.key === 'photo'">
-            {{ item.image_url ? getFileName(item.image_url) : '—' }}
+            {{ item.original_name ? getFileName(item.original_name) : '—' }}
           </template>
 
           <!-- Дата -->
@@ -297,7 +297,7 @@ const displayedItems = computed(() => {
     id: item.id,
     animal_id: item.animal_id,
     weight: Math.round(item.weight),
-    image_url: item.image_url,
+    original_name: item.original_name,
     created_at: new Date(item.created_at), // Убедимся, что это Date
   }));
 });
