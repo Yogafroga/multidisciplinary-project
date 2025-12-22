@@ -47,7 +47,7 @@ async def login_for_access_token(
         form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
         db: AsyncSession = Depends(get_db)):
     """
-    Аутентифицирует пользователя и выдает JWT access_token (12 часов).
+    Аутентифицирует пользователя и выдает JWT access_token
 
     Args:
         form_data: OAuth2PasswordRequestForm с username/password

@@ -4,10 +4,12 @@ from typing import Annotated
 import aioboto3
 from pathlib import Path
 
+import httpx
 from botocore.exceptions import ClientError, NoCredentialsError
 from fastapi import APIRouter, status, HTTPException, BackgroundTasks, Depends, Query
 from fastapi.responses import RedirectResponse
 from fastapi.security import OAuth2PasswordBearer
+from httpx import Response
 from sqlalchemy import select
 
 from backend.app.models import Report
@@ -66,6 +68,11 @@ async def get_user_reports(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="No credentials provided",
         )
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Database error: {str(e)}",
+        )
 
 
 @router.post("/generate", response_model=ReportGenerateResponse, status_code=status.HTTP_202_ACCEPTED)
@@ -123,31 +130,11 @@ async def generate_report(
     )
 
 
-@router.get("/{report_id}")
-async def get_report_status(report_id: str,
-                            token: Annotated[str, Depends(oauth2_scheme)]):
-    """
-    Перенаправляет на скачивание отчета (307 Temporary Redirect).
-
-    Используется как промежуточный эндпоинт для проверки статуса и редиректа.
-
-    Args:
-        report_id: Уникальный ID отчета (report-abc123)
-        token: Bearer token пользователя
-
-    Returns:
-        RedirectResponse на /reports/{report_id}/download
-    """
-    redirect_url = f"/reports/{report_id}/download?token={token}"
-    return RedirectResponse(url=redirect_url, status_code=307)
-
-
 @router.get("/{report_id}/download")
 async def download_report(
-    report_id: str,
-    current_user: Annotated[dict, Depends(get_current_user)],
-    db: db_dependency,
-    token: str = Query(None),
+        report_id: str,
+        current_user: Annotated[dict, Depends(get_current_user)],
+        db: db_dependency,
 ):
     """
     Генерирует signed URL для скачивания отчета из VK Cloud S3 (24 часа).
@@ -186,10 +173,10 @@ async def download_report(
 
     try:
         async with aioboto3.Session().client(
-            's3',
-            endpoint_url=settings.VK_S3_ENDPOINT_URL,
-            aws_access_key_id=settings.VK_S3_ACCESS_KEY_ID,
-            aws_secret_access_key=settings.VK_S3_SECRET_KEY
+                's3',
+                endpoint_url=settings.VK_S3_ENDPOINT_URL,
+                aws_access_key_id=settings.VK_S3_ACCESS_KEY_ID,
+                aws_secret_access_key=settings.VK_S3_SECRET_KEY
         ) as s3:
             await s3.head_object(Bucket=settings.VK_S3_REPORTS_BUCKET_NAME, Key=s3_key)
 
@@ -199,7 +186,14 @@ async def download_report(
                 ExpiresIn=86400
             )
             print(f"Signed URL for {report_id} → {s3_key} (user {current_user['user_id']}): {signed_url[:50]}...")
-            return RedirectResponse(url=signed_url, status_code=302)
+            async with httpx.AsyncClient() as client:
+                s3_response = await client.get(signed_url)
+                return Response(
+                    content=s3_response.content,
+                    headers={
+                        "Content-Disposition": f"attachment; filename={s3_key}",
+                    },
+                    status_code=s3_response.status_code)
 
     except ClientError as e:
         error_code = e.response['Error']['Code']

@@ -11,11 +11,12 @@ from dotenv import load_dotenv
 env_path = Path(__file__).parent.parent / ".env"
 load_dotenv(env_path)
 
-DB_NAME = os.getenv('DB_NAME')
-DB_HOST = os.getenv('DB_HOST')
-DB_PORT = int(os.getenv('DB_PORT'))
-DB_USER = os.getenv('DB_USERNAME')
-DB_PASSWORD = os.getenv('DB_PASSWORD')
+# Получаем значения из переменных окружения и удаляем кавычки, если они есть
+DB_NAME = os.getenv('DB_NAME', '').strip('"\'')
+DB_HOST = os.getenv('DB_HOST', '').strip('"\'')
+DB_PORT = int(os.getenv('DB_PORT', '5432'))
+DB_USER = os.getenv('DB_USERNAME', '').strip('"\'')
+DB_PASSWORD = os.getenv('DB_PASSWORD', '').strip('"\'')
 
 DATABASE_URL = f'postgresql+asyncpg://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}'
 
