@@ -27,7 +27,7 @@ async def get_batch_statistics(
     """
     Получает пагинированную статистику по батчам изображений с агрегацией данных.
     """
-    count_query = select(func.count(ImageBatch.id))
+    count_query = select(func.count(ImageBatch.id).where(ImageBatch.user_id == current_user["user_id"]))
     total_result = await db.execute(count_query)
     total = total_result.scalar()
 
@@ -42,6 +42,7 @@ async def get_batch_statistics(
             func.array_agg(CattleDetection.id).label("detection_ids"),
             ImageBatch.create_datetime.label("create_dt"),
         )
+        .where(ImageBatch.user_id == current_user["user_id"])
         .outerjoin(Image, Image.batch_id == ImageBatch.id)
         .outerjoin(CattleDetection, CattleDetection.image_id == Image.id)
         .group_by(ImageBatch.id, ImageBatch.create_datetime)
