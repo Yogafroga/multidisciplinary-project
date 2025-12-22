@@ -11,6 +11,9 @@ from backend.app.repositories.image_repository import image_repository
 from backend.app.repositories.batch_image_repository import batch_image_repository
 from backend.app.repositories.cattle_detection_repository import cattle_detection_repository
 from backend.app.core.config import settings
+from backend.app.core.logging_config import get_logger
+
+logger = get_logger(__name__)
 
 # Ленивая инициализация ML адаптера
 _cattle_adapter = None
@@ -21,12 +24,14 @@ def _get_cattle_adapter():
     if _cattle_adapter is None and settings.ML_ENABLED:
         try:
             from backend.app.ml_service.cattle_adapter import CattleAdapter
+            logger.info("Loading ML models...")
             _cattle_adapter = CattleAdapter(
                 seg_model_path=str(settings.SEG_MODEL_PATH),
                 reg_model_path=str(settings.REG_MODEL_PATH)
             )
+            logger.info("ML models loaded successfully")
         except Exception as e:
-            print(f"Warning: Failed to load ML model: {e}")
+            logger.warning(f"Failed to load ML model: {e}", exc_info=True)
             return None
     return _cattle_adapter
 
@@ -122,7 +127,7 @@ class ImageService:
                     "cattle_percentage": result.get("cattle_percentage", 0)
                 }
             except Exception as e:
-                print(f"ML prediction failed, using fallback: {e}")
+                logger.warning(f"ML prediction failed, using fallback: {e}", exc_info=True)
 
         # Fallback: заглушка
         return {

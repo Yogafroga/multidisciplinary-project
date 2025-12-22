@@ -1,5 +1,6 @@
 from pathlib import Path
 from pydantic_settings import BaseSettings
+from pydantic import field_validator
 
 
 class Settings(BaseSettings):
@@ -23,6 +24,14 @@ class Settings(BaseSettings):
     VK_S3_BUCKET_NAME: str
     VK_S3_ACCESS_KEY_ID: str
     VK_S3_SECRET_KEY: str
+
+    @field_validator('VK_S3_ACCESS_KEY_ID', 'VK_S3_SECRET_KEY', 'VK_S3_BUCKET_NAME', mode='before')
+    @classmethod
+    def strip_quotes(cls, v):
+        """Удаляет кавычки из значений переменных окружения"""
+        if isinstance(v, str):
+            return v.strip('"\'')
+        return v
 
     # Разрешенные типы (MIME)
     ALLOWED_MIME_TYPES: set[str] = {

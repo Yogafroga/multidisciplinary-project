@@ -7,14 +7,20 @@ import aioboto3
 import pandas as pd
 from reportlab.lib import colors
 from reportlab.lib.pagesizes import A4
-from reportlab.lib.styles import getSampleStyleSheet
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.lib.fonts import addMapping
+from reportlab.pdfbase import pdfmetrics
+from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.app.core.config import settings
+from backend.app.core.logging_config import get_logger
 from backend.app.models import CattleDetection
 from backend.schemas.reports import ReportGenerateRequest
+
+logger = get_logger(__name__)
 
 TEMP_DIR = Path(tempfile.gettempdir()) / "reports"
 TEMP_DIR.mkdir(exist_ok=True)
@@ -39,7 +45,17 @@ def _generate_pdf_report(local_path: Path, df: pd.DataFrame, payload):
     doc = SimpleDocTemplate(str(local_path), pagesize=A4)
     story = []
     styles = getSampleStyleSheet()
-    story.append(Paragraph("Weighings Report", styles['Title']))
+    
+    # Создаём стиль для заголовка с явным указанием шрифта
+    title_style = ParagraphStyle(
+        'CustomTitle',
+        parent=styles['Title'],
+        fontName='Helvetica-Bold',
+        fontSize=16,
+        textColor=colors.black,
+        spaceAfter=12,
+    )
+    story.append(Paragraph("Weighings Report", title_style))
     story.append(Spacer(1, 12))
     if not df.empty:
         table_data = [df.columns.tolist()] + df.values.tolist()
@@ -93,6 +109,7 @@ async def generate_report_s3(mode: str, report_id: str, payload: ReportGenerateR
     s3_key = f"{report_id}.{'pdf' if mode == 'pdf' else 'xlsx'}"
     content_type = 'application/pdf' if mode == 'pdf' else 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
 
+    logger.info(f"Starting report generation: {report_id} (mode: {mode})")
     try:
         query = select(CattleDetection)
         if payload.start_date:
@@ -106,6 +123,7 @@ async def generate_report_s3(mode: str, report_id: str, payload: ReportGenerateR
 
         result = await db.execute(query)
         detections = result.scalars().all()
+        logger.debug(f"Found {len(detections)} detections for report {report_id}")
         data = [{
             "animal_id": d.animal_id,
             "weight": d.weight,
@@ -118,6 +136,7 @@ async def generate_report_s3(mode: str, report_id: str, payload: ReportGenerateR
 
         if mode == 'excel':
             # Excel генерация (оригинальная логика)
+            logger.debug(f"Generating Excel report: {report_id}")
             with pd.ExcelWriter(local_path, engine='openpyxl') as writer:
                 df.to_excel(writer, index=False, sheet_name='Взвешивания')
 
@@ -126,13 +145,18 @@ async def generate_report_s3(mode: str, report_id: str, payload: ReportGenerateR
                     summary.to_excel(writer, sheet_name='Сводка')
 
         elif mode == 'pdf':
+            logger.debug(f"Generating PDF report: {report_id}")
             await to_thread(_generate_pdf_report, local_path, df, payload)
+        
+        logger.debug(f"Report file generated locally: {local_path}")
 
+        logger.debug(f"Uploading report to S3: {s3_key}")
         async with aioboto3.Session().client(
                 's3',
                 endpoint_url=settings.VK_S3_ENDPOINT_URL,
-                aws_access_key_id=os.getenv('VK_S3_ACCESS_KEY_ID'),
-                aws_secret_access_key=os.getenv('VK_S3_SECRET_KEY'),
+                aws_access_key_id=settings.VK_S3_ACCESS_KEY_ID,
+                aws_secret_access_key=settings.VK_S3_SECRET_KEY,
+                region_name=settings.VK_S3_REGION
         ) as s3:
             await s3.upload_file(
                 str(local_path),
@@ -141,10 +165,10 @@ async def generate_report_s3(mode: str, report_id: str, payload: ReportGenerateR
                 ExtraArgs={'ContentType': content_type}
             )
 
-        print(f"Report {report_id} ({mode.upper()}) uploaded to s3://{settings.VK_S3_REPORTS_BUCKET_NAME}/{s3_key}")
+        logger.info(f"Report {report_id} ({mode.upper()}) uploaded to s3://{settings.VK_S3_REPORTS_BUCKET_NAME}/{s3_key}")
 
     except Exception as e:
-        print(f"Report {report_id} ({mode}) failed: {e}")
+        logger.exception(f"Report {report_id} ({mode}) generation failed: {e}")
         raise  # Перебрасываем ошибку для логирования в background task
     finally:
         # Очищаем локальный файл
