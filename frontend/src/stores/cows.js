@@ -73,7 +73,7 @@ export const useCowsStore = defineStore('cows', () => {
         history.value.error = null;
 
         try {
-            const { data } = await api.get('/api/history', { params });
+            const { data } = await api.get('/history', { params });
 
             history.value.data = data.data ?? [];
             history.value.page = data.page ?? 1;
@@ -98,7 +98,7 @@ export const useCowsStore = defineStore('cows', () => {
 
     const fetchHistoryByAnimalId = async (animal_id) => {
         try {
-            const response = await api.get(`/api/history/${animal_id}`);
+            const response = await api.get(`/history/${animal_id}`);
             return response.data;
         } catch (error) {
             const message = error.response?.data?.detail?.[0]?.msg || 'Животное не найдено';
@@ -109,7 +109,7 @@ export const useCowsStore = defineStore('cows', () => {
 
     const deleteHistoryRecord = async (id) => {
         try {
-            const response = await api.delete(`/api/history/${id}`);
+            const response = await api.delete(`/history/${id}`);
             history.value.data = history.value.data.filter(item => item.id !== id);
             return { success: true, message: response.data?.message };
         } catch (error) {
