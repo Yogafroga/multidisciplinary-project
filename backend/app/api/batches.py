@@ -1,10 +1,10 @@
-# backend/app/api/batches.py
 from datetime import datetime
 from typing import List, Annotated
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 from pydantic import BaseModel
+import zoneinfo
 
 from backend.app.database import get_db
 from backend.app.models.image_batch import ImageBatch
@@ -15,6 +15,7 @@ from backend.schemas.batches import BatchStatsResponse
 
 router = APIRouter(prefix="/batches", tags=["batches"])
 
+TOMSK_TZ = zoneinfo.ZoneInfo("Asia/Tomsk")  # UTC+7
 
 @router.get("/stats", response_model=BatchStatsResponse)
 async def get_batch_statistics(
@@ -57,8 +58,7 @@ async def get_batch_statistics(
             func.count(Image.id).label("photo_count"),
             func.avg(CattleDetection.weight).label("avg_weight"),
             func.coalesce(func.sum(CattleDetection.weight), 0).label("total_weight"),
-            func.to_char(ImageBatch.create_datetime, 'YYYY-MM-DD').label("create_date"),
-            func.to_char(ImageBatch.create_datetime, 'HH24:MI:SS').label("create_time"),
+            ImageBatch.create_datetime.label("create_dt"),
         )
         .outerjoin(Image, Image.batch_id == ImageBatch.id)
         .outerjoin(CattleDetection, CattleDetection.image_id == Image.id)
@@ -73,13 +73,14 @@ async def get_batch_statistics(
 
     stats = []
     for row in rows:
+        dt_tomsk = row.create_dt.astimezone(TOMSK_TZ)
         stats.append({
             "batch_number": row.batch_number,
             "photo_count": row.photo_count,
             "avg_weight": row.avg_weight,
             "total_weight": float(row.total_weight),
-            "create_date": row.create_date,
-            "create_time": row.create_time,
+            "create_date": dt_tomsk.strftime("%Y-%m-%d"),
+            "create_time": dt_tomsk.strftime("%H:%M:%S"),
         })
 
     total_pages = (total + limit - 1) // limit  # ceiling division
