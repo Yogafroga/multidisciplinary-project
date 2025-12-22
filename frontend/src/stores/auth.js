@@ -17,7 +17,7 @@ export const useAuthStore = defineStore('auth', () => {
             params.append('password', password);
             params.append('grant_type', 'password');
 
-            const response = await api.post('/api/auth/token', params, {
+            const response = await api.post('/auth/token', params, {
                 headers: {
                     'Content-Type': 'application/x-www-form-urlencoded',
                 },
@@ -43,7 +43,7 @@ export const useAuthStore = defineStore('auth', () => {
      */
     const register = async (login, password, role = 1) => {
         try {
-            const response = await api.post('/api/auth/create_user', {
+            const response = await api.post('/auth/create_user', {
                 login,
                 password,
                 role,
