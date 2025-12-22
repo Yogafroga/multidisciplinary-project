@@ -14,6 +14,58 @@ export const useCowsStore = defineStore('cows', () => {
         error: null,
     });
 
+    const batchStats = ref({
+        items: [],
+        page: 1,
+        limit: 10,
+        total: 0,
+        total_pages: 1,
+        loading: false,
+        error: null,
+    });
+
+    // --- Новый метод: fetchBatchStats ---
+    const fetchBatchStats = async (params = {}) => {
+        batchStats.value.loading = true;
+        batchStats.value.error = null;
+
+        try {
+            const { data } = await api.get('/batches/stats', { params });
+
+            batchStats.value.items = data.items ?? [];
+            batchStats.value.page = data.page ?? 1;
+            batchStats.value.limit = data.limit ?? 10;
+            batchStats.value.total = data.total ?? 0;
+            batchStats.value.total_pages = data.total_pages ?? 1;
+
+            // Устанавливаем calculatedGroup для использования в UI
+            if (data.items?.length > 0) {
+                setCalculatedGroup({
+                    total_batches: data.total,
+                    total_photos: data.items.reduce((sum, b) => sum + b.photo_count, 0),
+                    avg_weight: data.items.reduce((sum, b) => sum + (b.avg_weight || 0), 0) / data.items.length || null,
+                    total_weight: data.items.reduce((sum, b) => sum + (b.total_weight || 0), 0),
+                });
+            } else {
+                clearCalculatedGroup();
+            }
+
+            return data;
+        } catch (error) {
+            const message =
+                error.response?.data?.detail ||
+                error.message ||
+                'Ошибка загрузки статистики батчей';
+
+            batchStats.value.error = message;
+            console.error('[CowsStore] fetchBatchStats error:', message);
+            clearCalculatedGroup();
+            throw error;
+        } finally {
+            batchStats.value.loading = false;
+        }
+    };
+
     const calculatedGroup = ref(null);
 
     const setCalculatedGroup = (summary) => {
@@ -121,13 +173,16 @@ export const useCowsStore = defineStore('cows', () => {
 
     return {
         history,
+        batchStats,
+        calculatedGroup,
         uploadImage,
         uploadArchive,
         fetchHistory,
         fetchHistoryByAnimalId,
         deleteHistoryRecord,
-        calculatedGroup,
+        fetchBatchStats,
         setCalculatedGroup,
         clearCalculatedGroup,
     };
+
 });
