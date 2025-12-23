@@ -83,14 +83,15 @@
                             </div>
                         </div>
                         <div class="home__action-export">
-                            <TabBar variant="export-small" />
-                            <Button variant="download"></Button>
+                            <TabBar variant="export-small" v-model:selectedTab="selectedExportTab" />
+                            <Button variant="download" @click="exportSelected"></Button>
                         </div>
                     </div>
                     <div class="home__table">
                         <Transition name="fade" mode="out-in">
                             <div v-if="selectedJournal === 'log'">
                               <BigTable
+                               ref="weighingsTable"
                                   type="weighings"
                                   :filter-id="filterId"
                                   :filter-date-range="dateRange"
@@ -99,6 +100,7 @@
                             </div>
                             <div v-else-if="selectedJournal === 'history'">
                               <BigTable
+                              ref="operationTable"
                                   type="operation"
                                   :filter-id="filterId"
                                   :filter-date-range="dateRange"
@@ -138,12 +140,14 @@ const selectedAnimalTab = ref('one')
 const selectedJournal = ref('log')
 const selectedAnimalId = ref('')
 const isCalculating = ref(false) // при расчёте
-const selectedExportTab = ref('pdf')
+const selectedExportTab = ref('excel')
 const fileItems = ref([])
 const uploadedImageINfo = ref(null) // ответ сервера после uploadImage
 const uploadedArchiveInfo = ref(null) // ответ сервера после uploadArchive
 const filterId = ref('')
 const dateRange = ref({ start: null, end: null });
+const weighingsTable = ref(null)
+const operationTable = ref(null)
 
 const hasActiveFilters = computed(() => {
     return filterId.value.trim() !== '' ||
@@ -542,6 +546,14 @@ async function handleExport() {
   } catch (error) {
     console.error('Ошибка скачивания:', error);
     alert('Не удалось скачать файл');
+  }
+}
+
+function exportSelected() {
+  let activeTable = selectedJournal.value === 'log' ? weighingsTable.value : operationTable.value
+
+  if (activeTable) {
+    activeTable.downloadSelected(selectedExportTab.value)
   }
 }
 

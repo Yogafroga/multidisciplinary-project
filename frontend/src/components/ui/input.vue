@@ -47,7 +47,7 @@ import Eye_Close from '../../assets/icons/main/Eye_Close.vue'
 import Calendar from '../../assets/icons/main/Calendar1.vue'
 
 const props = defineProps({
-  modelValue: { type: [String, Array], default: '' },
+  modelValue: { type: Object, default: () => ({start: null, end: null}) },
   type: { type: String, default: 'text' },
   placeholder: String,
   error: String,
@@ -73,10 +73,10 @@ watch(() => props.modelValue, val => internalValue.value = val)
 
 // --- DATE RANGE ---
 const showDatePicker = ref(false)
-const dateRange = ref({
-  start: Array.isArray(props.modelValue) ? props.modelValue[0] : null,
-  end: Array.isArray(props.modelValue) ? props.modelValue[1] : null
-})
+// const dateRange = ref({
+//   start: Array.isArray(props.modelValue) ? props.modelValue[0] : null,
+//   end: Array.isArray(props.modelValue) ? props.modelValue[1] : null
+// })
 
 // Форматирование даты
 const formatDate = (dateString) => dateString ? dayjs(dateString).format(props.dateFormat) : ''
@@ -99,20 +99,30 @@ const toggleDatePicker = () => {
   showDatePicker.value = !showDatePicker.value
 }
 
-// Обновляем локальный dateRange при внешнем изменении modelValue
-watch(() => props.modelValue, (newValue) => {
-  if (Array.isArray(newValue) && newValue.length === 2) {
-    dateRange.value = { start: newValue[0], end: newValue[1] }
-  }
-}, { immediate: true })
+const dateRange = ref({
+  start: null,
+  end: null
+})
 
+// Обновляем локальный dateRange при внешнем изменении modelValue
+watch(
+  () => props.modelValue,
+  (val) => {
+    if (!val || (!val.start && !val.end)) {
+      dateRange.value = { start: null, end: null }
+    } else {
+      dateRange.value = val
+    }
+  },
+  { immediate: true, deep: true }
+)
 
 //  Защита от undefined/null
 const safeDateRange = computed({
-  get: () => dateRange.value || { start: null, end: null },
+  get: () => dateRange.value,
   set: (val) => {
-    dateRange.value = val;
-    emit('update:modelValue', val);
+    dateRange.value = val
+    emit('update:modelValue', val)
   }
 });
 </script>

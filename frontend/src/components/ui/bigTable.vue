@@ -123,12 +123,6 @@
         <nextIcon />
       </button>
     </div>
-
-    <!-- Кнопка "Экспорт выбранных" -->
-    <div v-if="selectedItems.length > 0" class="bulk-actions">
-      <Button variant="download" @click="downloadSelected('pdf')">Экспорт PDF</Button>
-      <Button variant="download" @click="downloadSelected('excel')">Экспорт Excel</Button>
-    </div>
   </div>
 </template>
 
@@ -471,6 +465,10 @@ const emits = defineEmits(['update:selectedItems']);
 watch(selectedItems, (newVal) => {
   emits('update:selectedItems', newVal);
 });
+
+defineExpose({
+  downloadSelected
+})
 </script>
 
 <style scoped lang="scss">
