@@ -23,6 +23,17 @@ db_dependency = Annotated[AsyncSession, Depends(get_db)]
 
 
 def create_access_token(login: str, user_id: int, expires_delta: timedelta):
+    """
+    Создает JWT access_token с login, user_id и временем истечения.
+
+    Args:
+        login: Логин пользователя (sub claim)
+        user_id: ID пользователя (id claim)
+        expires_delta: timedelta до истечения токена
+
+    Returns:
+        Закодированная JWT строка
+    """
     encode = {
         'sub': login,
         'id': user_id
@@ -33,6 +44,18 @@ def create_access_token(login: str, user_id: int, expires_delta: timedelta):
 
 
 async def get_current_user(token: Annotated[str, Depends(oauth2_bearer)]):
+    """
+    Извлекает текущего пользователя из JWT токена.
+
+    Args:
+        token: Bearer токен из Authorization заголовка
+
+    Returns:
+        dict с 'username' и 'user_id'
+
+    Raises:
+        HTTPException: 401 при невалидном токене или отсутствии sub/id
+    """
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         username: str = payload.get("sub")
@@ -46,6 +69,17 @@ async def get_current_user(token: Annotated[str, Depends(oauth2_bearer)]):
 
 
 async def authenticate_user(login, password, db):
+    """
+    Аутентифицирует пользователя по логину и паролю.
+
+    Args:
+        login: Логин пользователя
+        password: Пароль в plain text
+        db: AsyncSession для запроса к БД
+
+    Returns:
+        UserORM объект при успешной аутентификации или False
+    """
     query = select(UserORM).where(UserORM.login == login)
     result = await db.execute(query)
     user = result.scalars().first()

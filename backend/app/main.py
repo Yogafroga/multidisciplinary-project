@@ -1,15 +1,18 @@
-from fastapi import FastAPI, HTTPException, Depends
-from fastapi.middleware.cors import CORSMiddleware
+from sqlalchemy.ext.asyncio import AsyncSession
 from typing import Annotated
 from starlette import status
-from sqlalchemy.ext.asyncio import AsyncSession
+from starlette.middleware.cors import CORSMiddleware
 
 from backend.app.api.auth import db_dependency
-from backend.app.api import auth
-from backend.app.api import uploadImage
-from backend.app.api import uploadArchive
+from fastapi import FastAPI, HTTPException, Depends
+from backend.app.api import auth, uploadArchive, uploadImage, reports, batches, history
 from backend.app.services.auth import get_current_user
-from backend.app.api.history import router as history_router
+from backend.app.core.logging_config import setup_logging, get_logger
+
+# Настройка логирования при старте приложения
+setup_logging(log_level="INFO")
+
+logger = get_logger(__name__)
 
 user_dependency = Annotated[dict, Depends(get_current_user)]
 
@@ -26,49 +29,28 @@ app.add_middleware(
     allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allow_headers=["*"],
 )
-# CORS
 
+# Роутеры
 app.include_router(auth.router)
 app.include_router(uploadArchive.router)
 app.include_router(uploadImage.router)
-app.include_router(history_router, prefix="/api")
+app.include_router(history.router)
+app.include_router(reports.router)
+app.include_router(batches.router)
+
+logger.info("FastAPI application initialized")
+
 
 @app.get("/", status_code=status.HTTP_200_OK)
 async def user(user: user_dependency, db: db_dependency):
+    logger.debug(f"Root endpoint accessed by user: {user.get('user_id') if user else None}")
     if user is None:
+        logger.warning("Unauthorized access attempt to root endpoint")
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED)
     return {"user": user}
 
 
 @app.get("/hello")
 def hello():
+    logger.debug("Hello endpoint accessed")
     return {"message": "hello!"}
-
-
-# дефолтная версия без корса
-"""
-from sqlalchemy.ext.asyncio import AsyncSession
-from typing import Annotated
-from starlette import status
-from backend.app.api.auth import db_dependency
-from fastapi import FastAPI, HTTPException, Depends
-from backend.app.api import auth
-from backend.app.services.auth import get_current_user
-
-user_dependency = Annotated[dict, Depends(get_current_user)]
-
-app = FastAPI(title="CattleWeighAI API MVP", version="0.0.1")
-app.include_router(auth.router)
-
-
-@app.get("/", status_code=status.HTTP_200_OK)
-async def user(user: user_dependency, db: db_dependency):
-    if user is None:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED)
-    return {"user": user}
-
-
-@app.get("/hello")
-def hello():
-    return {"message": "hello!"}
-"""

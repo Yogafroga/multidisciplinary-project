@@ -54,7 +54,7 @@
                         <div class="home__export">
                             <TabBar class="home__export-tabbar" variant="export"
                                 v-model:selectedTab="selectedExportTab" />
-                            <Button class="home__export-btn" :disabled="!isDataReady || isCalculating"
+                            <Button class="home__export-btn" :disabled="!isExportDataReady   || isCalculating"
                                 @click="handleExport">Скачать</Button>
                         </div>
                     </div>
@@ -83,17 +83,29 @@
                             </div>
                         </div>
                         <div class="home__action-export">
-                            <TabBar variant="export-small" />
-                            <Button variant="download"></Button>
+                            <TabBar variant="export-small" v-model:selectedTab="selectedExportTab" />
+                            <Button variant="download" @click="exportSelected"></Button>
                         </div>
                     </div>
                     <div class="home__table">
                         <Transition name="fade" mode="out-in">
                             <div v-if="selectedJournal === 'log'">
-                                <BigTable type="weighings" :filter-id="filterId" :filter-date-range="dateRange" />
+                              <BigTable
+                               ref="weighingsTable"
+                                  type="weighings"
+                                  :filter-id="filterId"
+                                  :filter-date-range="dateRange"
+                                  @update:selectedItems="selectedItems = $event"
+                              />
                             </div>
                             <div v-else-if="selectedJournal === 'history'">
-                                <BigTable type="operation" :filter-id="filterId" :filter-date-range="dateRange" />
+                              <BigTable
+                              ref="operationTable"
+                                  type="operation"
+                                  :filter-id="filterId"
+                                  :filter-date-range="dateRange"
+                                  @update:selectedItems="selectedItems = $event"
+                              />
                             </div>
                         </Transition>
                     </div>
@@ -108,6 +120,8 @@
 <script setup>
 import { ref, computed, nextTick } from 'vue'
 import { useCowsStore } from '../stores/cows'
+import { useReportsStore } from '../stores/reports'
+const reportsStore = useReportsStore();
 import JSZip from 'jszip';
 
 import Header from '../components/ui/head.vue'
@@ -119,19 +133,21 @@ import Button from '../components/ui/button.vue'
 import Lable from '../components/ui/label.vue'
 import Input from '../components/ui/input.vue'
 import BigTable from '../components/ui/bigTable.vue'
-
+const selectedItems = ref([]);
 const userEmail = ref('user@example.com')
 const currentTab = ref('upload')
 const selectedAnimalTab = ref('one')
 const selectedJournal = ref('log')
 const selectedAnimalId = ref('')
 const isCalculating = ref(false) // при расчёте
-const selectedExportTab = ref('pdf')
+const selectedExportTab = ref('excel')
 const fileItems = ref([])
 const uploadedImageINfo = ref(null) // ответ сервера после uploadImage
 const uploadedArchiveInfo = ref(null) // ответ сервера после uploadArchive
 const filterId = ref('')
 const dateRange = ref({ start: null, end: null });
+const weighingsTable = ref(null)
+const operationTable = ref(null)
 
 const hasActiveFilters = computed(() => {
     return filterId.value.trim() !== '' ||
@@ -155,6 +171,12 @@ const isDataReady = computed(() => {
         return !!uploadedArchiveInfo.value
     }
 })
+
+// готовность данных таблицы
+const isExportDataReady = computed(() => {
+  return fileItems.value.some(item => item.status === 'success')
+})
+
 
 // Смена варианта таблиц и отчизение старых данных
 const onAnimalTabChange = (tab) => {
@@ -454,15 +476,91 @@ const removeFile = (fileId) => {
 }
 
 
-// Логика клика на конопку скачивания
+// === Генерация и скачивание отчёта ===
 async function handleExport() {
-    if (!isDataReady.value || isCalculating.value) return
+  if (isCalculating.value || !isExportDataReady.value) return;
 
-    if (selectedExportTab.value === 'pdf') {
-        downloadPDF() // Функция скачивания (заглушки для API)
-    } else if (selectedExportTab.value === 'excel') {
-        downloadExcel() // Функция скачивания (заглушки для API)
+  let payload = {
+    format: selectedExportTab.value === 'pdf' ? 'pdf' : 'excel',
+    report_type: 'summary',
+    include_images: false,
+  };
+
+  // 🔹 Если выбрана вкладка "История взвешиваний"
+  if (selectedJournal.value === 'log') {
+    payload.include_weighs = selectedItems.value;
+  }
+
+  // 🔹 Если выбрана вкладка "Операции" (батчи)
+  if (selectedJournal.value === 'history') {
+    const allDetectionIds = [];
+
+    for (const batchNumber of selectedItems.value) {
+      const batch = cowSore.batchStats.items.find(b => b.batch_number === batchNumber);
+      if (batch && Array.isArray(batch.detection_ids)) {
+        allDetectionIds.push(...batch.detection_ids);
+      }
     }
+
+    if (allDetectionIds.length === 0) {
+      alert('Нет данных для экспорта: выбранные батчи не содержат взвешиваний');
+      return;
+    }
+
+    payload.include_weighs = allDetectionIds;
+  }
+
+  console.log('Формируем отчёт с payload:', payload);
+
+  // Генерируем отчёт
+  const res = await reportsStore.generateReport(payload);
+
+  if (!res.success) {
+    alert('Ошибка генерации: ' + res.error);
+    return;
+  }
+
+  const reportId = res.data.report_id;
+  console.log('Отчёт сгенерирован, ID:', reportId);
+
+  // Ждём 10 секунд (лучше — polling, но пока так)
+  await new Promise(resolve => setTimeout(resolve, 10000));
+
+  // Скачиваем
+  try {
+    const token = localStorage.getItem('access_token');
+    if (!token) {
+      alert('Токен не найден');
+      return;
+    }
+
+    const url = `${import.meta.env.VITE_API_BASE_URL}/reports/${reportId}/download`;
+    const response = await fetch(url, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    if (response.status === 200) {
+      const blob = await response.blob();
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = `${reportId}.${payload.format === 'excel' ? 'xlsx' : 'pdf'}`;
+      a.click();
+      URL.revokeObjectURL(a.href);
+    } else {
+      alert(`Ошибка скачивания: ${response.status}`);
+    }
+  } catch (error) {
+    console.error('Ошибка скачивания:', error);
+    alert('Не удалось скачать файл');
+  }
+}
+
+function exportSelected() {
+  let activeTable = selectedJournal.value === 'log' ? weighingsTable.value : operationTable.value
+
+  if (activeTable) {
+    activeTable.downloadSelected(selectedExportTab.value)
+  }
 }
 
 const handleLogout = () => {

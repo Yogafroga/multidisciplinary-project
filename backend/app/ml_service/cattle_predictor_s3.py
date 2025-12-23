@@ -12,6 +12,10 @@ import numpy as np
 import tensorflow as tf
 from PIL import Image  # used only for optional mask->png conversion
 
+from backend.app.core.logging_config import get_logger
+
+logger = get_logger(__name__)
+
 
 class CattleWeightPredictorS3:
     """
@@ -62,7 +66,7 @@ class CattleWeightPredictorS3:
             # warmup best-effort; ignore failures
             pass
 
-        print("✅ Segmentation and regression models loaded")
+        logger.info("Segmentation and regression models loaded")
 
     # --------------------------
     # S3 image loading utilities

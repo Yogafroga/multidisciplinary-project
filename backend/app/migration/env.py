@@ -23,7 +23,6 @@ from backend.app.models.image_batch import ImageBatch
 from backend.app.models.image import Image
 from backend.app.models.cattle_detection import CattleDetection
 from backend.app.models.report import Report
-from backend.app.models.user_report import User_report
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
 config = context.config

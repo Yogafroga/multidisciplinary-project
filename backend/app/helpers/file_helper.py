@@ -5,6 +5,9 @@ from pathlib import Path
 from fastapi import UploadFile
 import aioboto3
 from backend.app.core.config import settings
+from backend.app.core.logging_config import get_logger
+
+logger = get_logger(__name__)
 
 
 def generate_filename(original_filename: str) -> str:
@@ -61,7 +64,7 @@ async def save_file_to_folder(file: UploadFile, subfolder_name: str) -> dict:
             "url": relative_url
         }
     except OSError as e:
-        print(f"Disk I/O error: {e}")
+        logger.error(f"Disk I/O error saving file to folder {subfolder_name}: {e}", exc_info=True)
         raise e
 
 
@@ -115,5 +118,5 @@ async def save_file_to_s3(file: UploadFile, subfolder_name: str, s3_client=None)
         }
 
     except Exception as e:
-        print(f"S3 upload error: {e}")
+        logger.error(f"S3 upload error for file {file.filename} to {subfolder_name}: {e}", exc_info=True)
         raise e
