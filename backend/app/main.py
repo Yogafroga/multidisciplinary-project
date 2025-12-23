@@ -7,6 +7,7 @@ from backend.app.api import auth, uploadArchive, uploadImage, reports, batches, 
 from backend.app.services.auth import get_current_user
 from backend.app.core.logging_config import setup_logging, get_logger
 from backend.app.middleware.auth import AuthMiddleware
+from backend.app.middleware.database import DBSessionMiddleware
 
 # Настройка логирования при старте приложения
 setup_logging(log_level="INFO")
@@ -54,5 +55,5 @@ def hello():
     logger.debug("Hello endpoint accessed")
     return {"message": "hello!"}
 
-
+app.add_middleware(DBSessionMiddleware)
 app.add_middleware(AuthMiddleware)
