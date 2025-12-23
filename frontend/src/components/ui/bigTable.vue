@@ -341,7 +341,6 @@ const toggleSelectAll = () => {
   }
 };
 
-// --- Генерация отчёта ---
 const generateAndDownloadReport = async (ids, format) => {
   if (!Array.isArray(ids) || ids.length === 0) {
     alert('Нет записей для экспорта');
@@ -354,17 +353,33 @@ const generateAndDownloadReport = async (ids, format) => {
     include_images: false,
   };
 
-  // ✅ Если это операции (батчи) — используем batch_numbers
+  // 🔥 Если это батчи (operations)
   if (props.type === 'operation') {
-    payload.batch_numbers = ids; // [122, 123, ...]
+    const allDetectionIds = [];
+
+    // Проходим по каждому выбранному batch_number
+    for (const batchNumber of ids) {
+      // Ищем батч в store
+      const batch = cowsStore.batchStats.items.find(b => b.batch_number === batchNumber);
+      if (batch && Array.isArray(batch.detection_ids)) {
+        allDetectionIds.push(...batch.detection_ids); // добавляем все ID взвешиваний
+      }
+    }
+
+    if (allDetectionIds.length === 0) {
+      alert('Нет данных для экспорта: выбранные батчи не содержат взвешиваний');
+      return;
+    }
+
+    payload.include_weighs = allDetectionIds; // ✅ передаём как ID взвешиваний
   }
 
-  // ✅ Если это взвешивания — используем include_weighs
+  // 🔥 Если это отдельные взвешивания (weighings)
   if (props.type === 'weighings') {
     payload.include_weighs = ids;
   }
 
-  console.log('Payload:', payload);
+  console.log('Отправляем payload:', payload); // 🔥 для проверки
 
   const res = await reportsStore.generateReport(payload);
   if (!res.success) {
@@ -375,6 +390,7 @@ const generateAndDownloadReport = async (ids, format) => {
   const reportId = res.data.report_id;
   console.log('Отчёт сгенерирован, ID:', reportId);
 
+  // Ждём 10 секунд (можно улучшить позже)
   await new Promise((resolve) => setTimeout(resolve, 10000));
 
   try {
@@ -396,7 +412,6 @@ const generateAndDownloadReport = async (ids, format) => {
       a.download = `${reportId}.${format === 'excel' ? 'xlsx' : 'pdf'}`;
       a.click();
       URL.revokeObjectURL(a.href);
-      console.log('Файл успешно скачан');
     } else {
       alert(`Ошибка скачивания: ${response.status}`);
     }
