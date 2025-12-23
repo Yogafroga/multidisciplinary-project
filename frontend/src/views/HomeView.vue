@@ -54,7 +54,7 @@
                         <div class="home__export">
                             <TabBar class="home__export-tabbar" variant="export"
                                 v-model:selectedTab="selectedExportTab" />
-                            <Button class="home__export-btn" :disabled="!isDataReady || isCalculating"
+                            <Button class="home__export-btn" :disabled="!isExportDataReady   || isCalculating"
                                 @click="handleExport">Скачать</Button>
                         </div>
                     </div>
@@ -171,6 +171,12 @@ const isDataReady = computed(() => {
         return !!uploadedArchiveInfo.value
     }
 })
+
+// готовность данных таблицы
+const isExportDataReady = computed(() => {
+  return fileItems.value.some(item => item.status === 'success')
+})
+
 
 // Смена варианта таблиц и отчизение старых данных
 const onAnimalTabChange = (tab) => {
@@ -472,7 +478,7 @@ const removeFile = (fileId) => {
 
 // === Генерация и скачивание отчёта ===
 async function handleExport() {
-  if (!isDataReady.value || isCalculating.value || selectedItems.value.length === 0) return;
+  if (isCalculating.value || !isExportDataReady.value) return;
 
   let payload = {
     format: selectedExportTab.value === 'pdf' ? 'pdf' : 'excel',
@@ -507,7 +513,7 @@ async function handleExport() {
   console.log('Формируем отчёт с payload:', payload);
 
   // Генерируем отчёт
-  const res = await cowSore.reportsStore.generateReport(payload);
+  const res = await reportsStore.generateReport(payload);
 
   if (!res.success) {
     alert('Ошибка генерации: ' + res.error);
