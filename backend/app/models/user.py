@@ -11,3 +11,4 @@ class User(Base):
 
     # Relationship с пакетами изображений
     image_batches = relationship("ImageBatch", back_populates="user")
+    audits = relationship("Audit", back_populates="user")
