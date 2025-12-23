@@ -27,7 +27,7 @@ async def get_batch_statistics(
     """
     Получает пагинированную статистику по батчам изображений с агрегацией данных.
     """
-    count_query = select(func.count(ImageBatch.id).where(ImageBatch.user_id == current_user["user_id"]))
+    count_query = select(func.count()).select_from(ImageBatch).where(ImageBatch.user_id == current_user["user_id"])
     total_result = await db.execute(count_query)
     total = total_result.scalar()
 
