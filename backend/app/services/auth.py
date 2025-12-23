@@ -13,7 +13,7 @@ from starlette import status
 from backend.app.database import get_db
 from backend.app.models.user import User as UserORM
 
-SECRET_KEY = os.getenv('SECRET_KEY')
+SECRET_KEY = os.getenv('SECRET_KEY').strip('"\'')
 ALGORITHM = 'HS256'
 
 bcrypt_context = CryptContext(schemes=['bcrypt'], deprecated='auto')
